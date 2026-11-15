@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "accounts": [
+    {
+      "id": "aliyun-prod",
+      "name": "Aliyun production",
+      "provider": "aliyun",
+      "access_key_id": "LTAI5tExampleKeyId",
+      "region": "cn-hangzhou",
+      "enabled": true,
+      "remark": "Secret is stored in the OS credential store, not in this file."
+    },
+    {
+      "id": "tencent-prod",
+      "name": "Tencent Cloud production",
+      "provider": "tencent",
+      "access_key_id": "AKIDExampleKeyId",
+      "region": "ap-guangzhou",
+      "enabled": true,
+      "remark": ""
+    }
+  ],
+  "targets": [
+    {
+      "id": "web-servers",
+      "name": "Web servers",
+      "account_id": "aliyun-prod",
+      "region": "cn-hangzhou",
+      "security_group_id": "sg-bp1example",
+      "rules": [
+        { "protocol": "tcp", "start": 22, "end": 22 },
+        { "protocol": "tcp", "start": 80, "end": 80 },
+        { "protocol": "tcp", "start": 443, "end": 443 }
+      ],
+      "enabled": true
+    }
+  ],
+  "settings": {
+    "language": "en",
+    "check_interval_secs": 300,
+    "ip_services": [
+      "https://api.ipify.org",
+      "https://ifconfig.me/ip",
+      "https://ipinfo.io/ip",
+      "https://myip.ipip.net"
+    ],
+    "dry_run": false,
+    "close_to_tray": true,
+    "start_minimized": false,
+    "autostart": false,
+    "rule_prefix": "AutoFirewall",
+    "rule_priority": 1
+  }
+}
