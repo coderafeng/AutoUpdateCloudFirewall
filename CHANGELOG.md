@@ -60,8 +60,10 @@ First stable release.
 
 ### Known limitations
 
-- Windows 10/11 is the supported platform for 1.0.0; the macOS and Linux builds
-  use the same source but are not verified to the same degree.
+- Windows 10/11 is the supported platform for 1.0.0. The macOS and Linux binaries
+  are published anyway: they are built in CI from the same source but have never
+  been launched on a real machine, so the tray, the OS credential store and
+  window rendering may all fail there.
 - IPv4 and ingress rules only.
 - Tencent Cloud has no per-rule update call, so changing an address revokes and
   re-creates the rule: the rule ID changes, description and priority are kept.

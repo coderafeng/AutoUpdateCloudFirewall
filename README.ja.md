@@ -75,6 +75,11 @@ pwsh tools/release.ps1 -Version 1.0.0 -Publish  # GitHub Release も作成
 `docs/releases/<バージョン>.md`（4 言語）から取得します。各プラットフォームのバイナリは
 その環境（または CI）でビルドする必要があります。
 
+実際のリリースは CI で行います。`v*` タグを push すると
+`.github/workflows/release.yml` が Windows・macOS・Linux の各ランナーでビルドし、3 つの
+成果物と `docs/releases/<バージョン>.md` をまとめて Release に添付します。macOS と Linux の
+成果物はリリースノートで**未検証**と明記しています。
+
 変更履歴は [CHANGELOG.ja.md](CHANGELOG.ja.md) を参照してください。
 
 ## アプリの使い方

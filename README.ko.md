@@ -87,6 +87,11 @@ pwsh tools/release.ps1 -Version 1.0.0 -Publish  # GitHub Release까지 생성
 `docs/releases/<버전>.md`(4개 언어)에서 가져옵니다. 각 플랫폼 바이너리는 해당 시스템
 또는 CI에서 빌드해야 합니다.
 
+실제 릴리스는 CI로 진행합니다. `v*` 태그를 push하면
+`.github/workflows/release.yml`이 Windows, macOS, Linux 러너에서 각각 빌드하고 세 산출물과
+`docs/releases/<버전>.md`를 함께 Release에 첨부합니다. macOS와 Linux 산출물은 릴리스 노트에
+**미검증**으로 표시됩니다.
+
 변경 이력은 [CHANGELOG.ko.md](CHANGELOG.ko.md)를 참고하세요.
 
 ## 앱 사용 방법

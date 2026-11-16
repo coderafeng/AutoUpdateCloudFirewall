@@ -74,6 +74,10 @@ pwsh tools/release.ps1 -Version 1.0.0 -Publish  # 同时创建 GitHub Release
 脚本会在构建前跑完 `cargo fmt --check`、clippy 和测试，发布说明取自
 `docs/releases/<版本>.md`（四语）。每个平台的二进制需要在对应系统（或 CI）上构建。
 
+正式发布走 CI：推送 `v*` tag 会触发 `.github/workflows/release.yml`，在 Windows、macOS、
+Linux 三个 runner 上分别构建，把三份产物连同 `docs/releases/<版本>.md` 一起挂到 Release。
+其中 macOS 与 Linux 的产物在发布说明中标为**未验证**。
+
 版本变更记录见 [CHANGELOG.zh-CN.md](CHANGELOG.zh-CN.md)。
 
 ## 使用方式

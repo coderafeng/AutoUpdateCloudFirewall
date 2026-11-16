@@ -94,6 +94,11 @@ The script runs `cargo fmt --check`, clippy and the test suite first, and takes 
 release notes from `docs/releases/<version>.md` (four languages). Each platform
 binary has to be built on that platform or in CI.
 
+Releases go through CI: pushing a `v*` tag runs
+`.github/workflows/release.yml`, which builds on a Windows, a macOS and a Linux
+runner and attaches all three assets plus `docs/releases/<version>.md` to the
+release. The macOS and Linux assets are labelled **unverified** in the notes.
+
 See [CHANGELOG.md](CHANGELOG.md) for the version history.
 
 ## Using the app
