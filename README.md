@@ -22,7 +22,7 @@ Built with Rust and [gpui-kit](https://gpui-kit.com/docs/getting-started/).
 
 | Provider | API | Managed operations |
 | --- | --- | --- |
-| Aliyun ECS | RPC, `ecs.aliyuncs.com`, `2014-05-26` | `DescribeSecurityGroups`, `DescribeSecurityGroupAttribute`, `AuthorizeSecurityGroup`, `RevokeSecurityGroup` |
+| Aliyun ECS | RPC, `ecs.aliyuncs.com`, `2014-05-26` | `DescribeSecurityGroups`, `DescribeSecurityGroupAttribute`, `AuthorizeSecurityGroup`, `RevokeSecurityGroup`, `ModifySecurityGroupRule` |
 | Tencent Cloud CVM | TC3-HMAC-SHA256, `ecs.tencentcloudapi.com`, `2017-03-12` | `DescribeSecurityGroups`, `DescribeSecurityGroupPolicies`, `CreateSecurityGroupPolicies`, `DeleteSecurityGroupPolicies` |
 
 No cloud vendor SDK is used; both request signers are implemented directly.
@@ -56,7 +56,8 @@ No cloud vendor SDK is used; both request signers are implemented directly.
 - An AccessKey with permission to read and modify security groups:
 
   **Aliyun** — `ecs:DescribeSecurityGroups`, `ecs:DescribeSecurityGroupAttribute`,
-  `ecs:AuthorizeSecurityGroup`, `ecs:RevokeSecurityGroup`.
+  `ecs:AuthorizeSecurityGroup`, `ecs:RevokeSecurityGroup`,
+  `ecs:ModifySecurityGroupRule`.
 
   **Tencent Cloud** — `DescribeSecurityGroups`, `DescribeSecurityGroupPolicies`,
   `CreateSecurityGroupPolicies`, `DeleteSecurityGroupPolicies`.

@@ -19,7 +19,7 @@
 
 | 厂商 | API | 使用的接口 |
 | --- | --- | --- |
-| 阿里云 ECS | RPC, `ecs.aliyuncs.com`, `2014-05-26` | `DescribeSecurityGroups`、`DescribeSecurityGroupAttribute`、`AuthorizeSecurityGroup`、`RevokeSecurityGroup` |
+| 阿里云 ECS | RPC, `ecs.aliyuncs.com`, `2014-05-26` | `DescribeSecurityGroups`、`DescribeSecurityGroupAttribute`、`AuthorizeSecurityGroup`、`RevokeSecurityGroup`、`ModifySecurityGroupRule` |
 | 腾讯云 CVM | TC3-HMAC-SHA256, `ecs.tencentcloudapi.com`, `2017-03-12` | `DescribeSecurityGroups`、`DescribeSecurityGroupPolicies`、`CreateSecurityGroupPolicies`、`DeleteSecurityGroupPolicies` |
 
 未使用任何云厂商 SDK，两套请求签名均为直接实现。
@@ -40,7 +40,7 @@
 - Rust 1.85+（edition 2024）和 MSVC 工具链。
 - 一个拥有安全组读写权限的 AccessKey：
 
-  **阿里云** — `ecs:DescribeSecurityGroups`、`ecs:DescribeSecurityGroupAttribute`、`ecs:AuthorizeSecurityGroup`、`ecs:RevokeSecurityGroup`。
+  **阿里云** — `ecs:DescribeSecurityGroups`、`ecs:DescribeSecurityGroupAttribute`、`ecs:AuthorizeSecurityGroup`、`ecs:RevokeSecurityGroup`、`ecs:ModifySecurityGroupRule`。
 
   **腾讯云** — `DescribeSecurityGroups`、`DescribeSecurityGroupPolicies`、`CreateSecurityGroupPolicies`、`DeleteSecurityGroupPolicies`。
 

@@ -21,7 +21,7 @@ Rust와 [gpui-kit](https://gpui-kit.com/docs/getting-started/)으로 만들었�
 
 | 공급자 | API | 사용하는 작업 |
 | --- | --- | --- |
-| Aliyun ECS | RPC, `ecs.aliyuncs.com`, `2014-05-26` | `DescribeSecurityGroups`, `DescribeSecurityGroupAttribute`, `AuthorizeSecurityGroup`, `RevokeSecurityGroup` |
+| Aliyun ECS | RPC, `ecs.aliyuncs.com`, `2014-05-26` | `DescribeSecurityGroups`, `DescribeSecurityGroupAttribute`, `AuthorizeSecurityGroup`, `RevokeSecurityGroup`, `ModifySecurityGroupRule` |
 | Tencent Cloud CVM | TC3-HMAC-SHA256, `ecs.tencentcloudapi.com`, `2017-03-12` | `DescribeSecurityGroups`, `DescribeSecurityGroupPolicies`, `CreateSecurityGroupPolicies`, `DeleteSecurityGroupPolicies` |
 
 클라우드 공급자 SDK는 사용하지 않으며, 두 요청 서명기를 직접 구현했습니다.
@@ -50,7 +50,8 @@ Rust와 [gpui-kit](https://gpui-kit.com/docs/getting-started/)으로 만들었�
 - 보안 그룹을 읽고 수정할 수 있는 AccessKey:
 
   **Aliyun** — `ecs:DescribeSecurityGroups`, `ecs:DescribeSecurityGroupAttribute`,
-  `ecs:AuthorizeSecurityGroup`, `ecs:RevokeSecurityGroup`.
+  `ecs:AuthorizeSecurityGroup`, `ecs:RevokeSecurityGroup`,
+  `ecs:ModifySecurityGroupRule`.
 
   **Tencent Cloud** — `DescribeSecurityGroups`, `DescribeSecurityGroupPolicies`,
   `CreateSecurityGroupPolicies`, `DeleteSecurityGroupPolicies`.

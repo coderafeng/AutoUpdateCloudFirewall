@@ -19,7 +19,7 @@ Rust と [gpui-kit](https://gpui-kit.com/docs/getting-started/) で構築して�
 
 | プロバイダー | API | 使用する操作 |
 | --- | --- | --- |
-| Aliyun ECS | RPC, `ecs.aliyuncs.com`, `2014-05-26` | `DescribeSecurityGroups`, `DescribeSecurityGroupAttribute`, `AuthorizeSecurityGroup`, `RevokeSecurityGroup` |
+| Aliyun ECS | RPC, `ecs.aliyuncs.com`, `2014-05-26` | `DescribeSecurityGroups`, `DescribeSecurityGroupAttribute`, `AuthorizeSecurityGroup`, `RevokeSecurityGroup`, `ModifySecurityGroupRule` |
 | Tencent Cloud CVM | TC3-HMAC-SHA256, `ecs.tencentcloudapi.com`, `2017-03-12` | `DescribeSecurityGroups`, `DescribeSecurityGroupPolicies`, `CreateSecurityGroupPolicies`, `DeleteSecurityGroupPolicies` |
 
 クラウドベンダーの SDK は使用しておらず、両方のリクエスト署名を直接実装しています。
@@ -40,7 +40,7 @@ Rust と [gpui-kit](https://gpui-kit.com/docs/getting-started/) で構築して�
 - Rust 1.85 以降（edition 2024）と MSVC ツールチェーン。
 - セキュリティグループの読み取りと変更が可能な AccessKey：
 
-  **Aliyun** — `ecs:DescribeSecurityGroups`、`ecs:DescribeSecurityGroupAttribute`、`ecs:AuthorizeSecurityGroup`、`ecs:RevokeSecurityGroup`。
+  **Aliyun** — `ecs:DescribeSecurityGroups`、`ecs:DescribeSecurityGroupAttribute`、`ecs:AuthorizeSecurityGroup`、`ecs:RevokeSecurityGroup`、`ecs:ModifySecurityGroupRule`。
 
   **Tencent Cloud** — `DescribeSecurityGroups`、`DescribeSecurityGroupPolicies`、`CreateSecurityGroupPolicies`、`DeleteSecurityGroupPolicies`。
 
