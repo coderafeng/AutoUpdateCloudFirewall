@@ -60,6 +60,23 @@ cargo run --release
 cargo test
 ```
 
+## リリース
+
+```powershell
+pwsh tools/release.ps1 -Version 1.0.0           # ビルドしてプラットフォーム別に命名
+pwsh tools/release.ps1 -Version 1.0.0 -Publish  # GitHub Release も作成
+```
+
+成果物は `dist/` に出力され、ファイル名にプラットフォームが付きます：
+`auto-update-cloud-firewall-x86_64-windows.exe`、
+`auto-update-cloud-firewall-x86_64-darwin.exe`、
+`auto-update-cloud-firewall-x86_64-linux.exe`。
+スクリプトはビルド前に `cargo fmt --check`、clippy、テストを実行し、リリースノートは
+`docs/releases/<バージョン>.md`（4 言語）から取得します。各プラットフォームのバイナリは
+その環境（または CI）でビルドする必要があります。
+
+変更履歴は [CHANGELOG.ja.md](CHANGELOG.ja.md) を参照してください。
+
 ## アプリの使い方
 
 1. **クラウドアカウント** を開き、**Aliyun アカウント** または **Tencent Cloud アカウント** でアカウントを追加します。AccessKey のシークレットはサービス名 `AutoUpdateCloudFirewall` として Windows 資格情報マネージャーに保存され、`config.json` に書き込まれることはありません。

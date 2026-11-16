@@ -72,6 +72,23 @@ cargo run --release
 cargo test
 ```
 
+## 릴리스
+
+```powershell
+pwsh tools/release.ps1 -Version 1.0.0           # 빌드 후 플랫폼별로 이름 지정
+pwsh tools/release.ps1 -Version 1.0.0 -Publish  # GitHub Release까지 생성
+```
+
+산출물은 `dist/`에 플랫폼 접미사가 붙은 이름으로 저장됩니다:
+`auto-update-cloud-firewall-x86_64-windows.exe`,
+`auto-update-cloud-firewall-x86_64-darwin.exe`,
+`auto-update-cloud-firewall-x86_64-linux.exe`.
+스크립트는 빌드 전에 `cargo fmt --check`, clippy, 테스트를 실행하며, 릴리스 노트는
+`docs/releases/<버전>.md`(4개 언어)에서 가져옵니다. 각 플랫폼 바이너리는 해당 시스템
+또는 CI에서 빌드해야 합니다.
+
+변경 이력은 [CHANGELOG.ko.md](CHANGELOG.ko.md)를 참고하세요.
+
 ## 앱 사용 방법
 
 1. **클라우드 계정**을 열고 **Aliyun 계정** 또는 **Tencent Cloud 계정**으로 계정을

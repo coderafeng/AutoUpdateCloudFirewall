@@ -79,6 +79,23 @@ Run the tests with:
 cargo test
 ```
 
+## Releasing
+
+```powershell
+pwsh tools/release.ps1 -Version 1.0.0           # build and rename per platform
+pwsh tools/release.ps1 -Version 1.0.0 -Publish  # also create the GitHub release
+```
+
+Artifacts land in `dist/` with a platform suffix:
+`auto-update-cloud-firewall-x86_64-windows.exe`,
+`auto-update-cloud-firewall-x86_64-darwin.exe`,
+`auto-update-cloud-firewall-x86_64-linux.exe`.
+The script runs `cargo fmt --check`, clippy and the test suite first, and takes the
+release notes from `docs/releases/<version>.md` (four languages). Each platform
+binary has to be built on that platform or in CI.
+
+See [CHANGELOG.md](CHANGELOG.md) for the version history.
+
 ## Using the app
 
 1. Open **Cloud accounts** and add an account with **Aliyun account** or

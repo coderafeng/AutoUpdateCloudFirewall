@@ -60,6 +60,22 @@ cargo run --release
 cargo test
 ```
 
+## 发布
+
+```powershell
+pwsh tools/release.ps1 -Version 1.0.0           # 构建并按平台命名
+pwsh tools/release.ps1 -Version 1.0.0 -Publish  # 同时创建 GitHub Release
+```
+
+产物固定在 `dist/`，文件名带平台后缀：
+`auto-update-cloud-firewall-x86_64-windows.exe`、
+`auto-update-cloud-firewall-x86_64-darwin.exe`、
+`auto-update-cloud-firewall-x86_64-linux.exe`。
+脚本会在构建前跑完 `cargo fmt --check`、clippy 和测试，发布说明取自
+`docs/releases/<版本>.md`（四语）。每个平台的二进制需要在对应系统（或 CI）上构建。
+
+版本变更记录见 [CHANGELOG.zh-CN.md](CHANGELOG.zh-CN.md)。
+
 ## 使用方式
 
 1. 打开 **云账号**，通过 **阿里云账号** 或 **腾讯云账号** 添加账号。AccessKey 密钥会写入 Windows 凭据管理器，服务名为 `AutoUpdateCloudFirewall`，永远不会写入 `config.json`。
