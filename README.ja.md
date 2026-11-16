@@ -1,6 +1,15 @@
-# Auto Update Cloud Firewall
+<p align="center">
+  <img src="assets/icon-128.png" width="112" alt="Auto Update Cloud Firewall logo">
+</p>
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
+<h1 align="center">Auto Update Cloud Firewall</h1>
+
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README.zh-CN.md">简体中文</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.ko.md">한국어</a>
+</p>
 
 クラウドのセキュリティグループのインバウンドルールを、常に現在のパブリック IPv4 アドレスに向けておく小さなデスクトップアプリです。通知領域で静かに動作し、一定間隔で IP を再確認し、自分が管理するルールだけを更新します。セキュリティグループ内のそれ以外の設定には一切触れません。
 

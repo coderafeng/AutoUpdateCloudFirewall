@@ -1,6 +1,15 @@
-# Auto Update Cloud Firewall
+<p align="center">
+  <img src="assets/icon-128.png" width="112" alt="Auto Update Cloud Firewall logo">
+</p>
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
+<h1 align="center">Auto Update Cloud Firewall</h1>
+
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README.zh-CN.md">简体中文</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.ko.md">한국어</a>
+</p>
 
 A small desktop app that keeps cloud security-group ingress rules pointed at your
 current public IPv4 address. It runs quietly in the notification area, re-checks

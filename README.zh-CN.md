@@ -1,6 +1,15 @@
-# Auto Update Cloud Firewall
+<p align="center">
+  <img src="assets/icon-128.png" width="112" alt="Auto Update Cloud Firewall logo">
+</p>
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
+<h1 align="center">Auto Update Cloud Firewall</h1>
+
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README.zh-CN.md">简体中文</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.ko.md">한국어</a>
+</p>
 
 一个轻量的桌面应用，让云安全组的入站规则始终指向你当前的公网 IPv4 地址。它常驻通知区域静默运行，按设定间隔重新检测 IP，并且只更新由它自己管理的规则——安全组中的其他内容不会被改动。
 

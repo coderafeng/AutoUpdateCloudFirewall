@@ -1,6 +1,15 @@
-# Auto Update Cloud Firewall
+<p align="center">
+  <img src="assets/icon-128.png" width="112" alt="Auto Update Cloud Firewall logo">
+</p>
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
+<h1 align="center">Auto Update Cloud Firewall</h1>
+
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README.zh-CN.md">简体中文</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.ko.md">한국어</a>
+</p>
 
 클라우드 보안 그룹의 인바운드 규칙이 항상 현재 공인 IPv4 주소를 가리키도록 유지해 주는
 작은 데스크톱 앱입니다. 알림 영역에서 조용히 실행되며 일정 간격으로 IP를 다시 확인하고,
