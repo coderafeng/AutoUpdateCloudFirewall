@@ -1737,6 +1737,8 @@ fn log_row(entry: &LogEntry, cx: &App) -> Div {
         .child(
             div()
                 .flex_1()
+                .min_w(px(0.))
+                .truncate()
                 .text_xs()
                 .text_color(cx.theme().foreground)
                 .child(entry.message.clone()),

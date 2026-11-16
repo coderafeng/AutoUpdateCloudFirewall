@@ -445,6 +445,23 @@ impl Worker {
         }
 
         if dry_run {
+            // Printed in the order the worker applies the plan:
+            // delete, then update, then create.
+            for rule in &initial.delete {
+                self.log(
+                    Level::Warn,
+                    self.tr(
+                        Text::WWouldRemove,
+                        &[
+                            ("target", &label),
+                            ("protocol", &rule.protocol),
+                            ("port", &rule.port),
+                            ("cidr", &rule.cidr),
+                            ("description", &rule.description),
+                        ],
+                    ),
+                );
+            }
             for rule in &initial.update {
                 let port = rule.desired.port_text();
                 self.log(
@@ -458,21 +475,6 @@ impl Worker {
                             ("description", &rule.remote.description),
                             ("from", &rule.remote.cidr),
                             ("to", &rule.desired.cidr),
-                        ],
-                    ),
-                );
-            }
-            for rule in &initial.delete {
-                self.log(
-                    Level::Warn,
-                    self.tr(
-                        Text::WWouldRemove,
-                        &[
-                            ("target", &label),
-                            ("protocol", &rule.protocol),
-                            ("port", &rule.port),
-                            ("cidr", &rule.cidr),
-                            ("description", &rule.description),
                         ],
                     ),
                 );
@@ -496,80 +498,6 @@ impl Worker {
                 Text::WDryRunSummary,
                 &[("summary", &self.plan_summary(&initial))],
             ));
-        }
-
-        // Apply in-place updates first: adopted rules keep their description
-        // and priority, only the source address changes.
-        let mut updated = 0usize;
-        for entry in &initial.update {
-            let port = entry.desired.port_text();
-            let tencent = matches!(client.provider(), crate::model::ProviderKind::Tencent);
-            let attempts = if tencent { 1 } else { RETRY_ATTEMPTS };
-            let mut attempt = 0usize;
-            loop {
-                attempt += 1;
-                // Tencent Cloud requires a fresh policy version for every call.
-                let version = if tencent {
-                    client
-                        .list_ingress(region, &target.security_group_id)
-                        .await
-                        .with_context(|| self.t(Text::WRefreshVersion))?
-                        .version
-                } else {
-                    snapshot.version.clone()
-                };
-                match client
-                    .update_cidr(region, &target.security_group_id, version.as_deref(), entry)
-                    .await
-                {
-                    Ok(()) => break,
-                    Err(err) if attempt < attempts => {
-                        let attempt_text = attempt.to_string();
-                        self.log(
-                            Level::Warn,
-                            self.tr(
-                                Text::WUpdateFailed,
-                                &[
-                                    ("target", &label),
-                                    ("protocol", entry.desired.protocol.label()),
-                                    ("port", &port),
-                                    ("attempt", &attempt_text),
-                                    ("attempts", &attempts.to_string()),
-                                    ("err", &format!("{err:#}")),
-                                ],
-                            ),
-                        );
-                        tokio::time::sleep(Duration::from_millis(800 * attempt as u64)).await;
-                    }
-                    Err(err) => {
-                        return Err(err).with_context(|| {
-                            self.tr(
-                                Text::WUpdateContext,
-                                &[
-                                    ("protocol", entry.desired.protocol.label()),
-                                    ("port", &port),
-                                ],
-                            )
-                        });
-                    }
-                }
-            }
-
-            updated += 1;
-            self.log(
-                Level::Success,
-                self.tr(
-                    Text::WUpdated,
-                    &[
-                        ("target", &label),
-                        ("protocol", entry.desired.protocol.label()),
-                        ("port", &port),
-                        ("from", &entry.remote.cidr),
-                        ("to", &entry.desired.cidr),
-                    ],
-                ),
-            );
-            tokio::time::sleep(API_SPACING).await;
         }
 
         // Delete managed rules that no longer match, one at a time so that
@@ -646,12 +574,104 @@ impl Worker {
             tokio::time::sleep(API_SPACING).await;
         }
 
-        // Re-read once so the create phase starts from the current state.
+        // Re-read after the deletes: the plan below reflects the group as it
+        // is now. Aliyun rejects a modify that would duplicate another rule
+        // (HTTP 400 InvalidOperation.RuleDuplicate), so a stale rule must be
+        // gone before its address is written onto an adopted rule.
         let snapshot = client
             .list_ingress(region, &target.security_group_id)
             .await
             .with_context(|| self.tr(Text::WReadGroup, &[("id", &target.security_group_id)]))?;
         let plan = planner::plan(&snapshot.rules, &desired, prefix);
+
+        // In-place updates: adopted rules keep their description and
+        // priority, only the source address changes.
+        let mut updated = 0usize;
+        for entry in &plan.update {
+            let port = entry.desired.port_text();
+            let tencent = matches!(client.provider(), crate::model::ProviderKind::Tencent);
+            let attempts = if tencent { 1 } else { RETRY_ATTEMPTS };
+            let mut attempt = 0usize;
+            loop {
+                attempt += 1;
+                // Tencent Cloud requires a fresh policy version for every call.
+                let version = if tencent {
+                    client
+                        .list_ingress(region, &target.security_group_id)
+                        .await
+                        .with_context(|| self.t(Text::WRefreshVersion))?
+                        .version
+                } else {
+                    snapshot.version.clone()
+                };
+                match client
+                    .update_cidr(region, &target.security_group_id, version.as_deref(), entry)
+                    .await
+                {
+                    Ok(()) => break,
+                    Err(err) => {
+                        let detail = format!("{err:#}");
+                        // A duplicate is a permanent state, not a transient
+                        // failure: retrying only sends the same rejected call.
+                        let duplicate = detail.contains("RuleDuplicate");
+                        if duplicate || attempt >= attempts {
+                            let context = if duplicate {
+                                self.tr(
+                                    Text::WUpdateDuplicate,
+                                    &[
+                                        ("protocol", entry.desired.protocol.label()),
+                                        ("port", &port),
+                                        ("cidr", &entry.desired.cidr),
+                                    ],
+                                )
+                            } else {
+                                self.tr(
+                                    Text::WUpdateContext,
+                                    &[
+                                        ("protocol", entry.desired.protocol.label()),
+                                        ("port", &port),
+                                    ],
+                                )
+                            };
+                            return Err(err).with_context(|| context);
+                        }
+                        let attempt_text = attempt.to_string();
+                        self.log(
+                            Level::Warn,
+                            self.tr(
+                                Text::WUpdateFailed,
+                                &[
+                                    ("target", &label),
+                                    ("protocol", entry.desired.protocol.label()),
+                                    ("port", &port),
+                                    ("attempt", &attempt_text),
+                                    ("attempts", &attempts.to_string()),
+                                    ("err", &detail),
+                                ],
+                            ),
+                        );
+                        tokio::time::sleep(Duration::from_millis(800 * attempt as u64)).await;
+                    }
+                }
+            }
+
+            updated += 1;
+            self.log(
+                Level::Success,
+                self.tr(
+                    Text::WUpdated,
+                    &[
+                        ("target", &label),
+                        ("protocol", entry.desired.protocol.label()),
+                        ("port", &port),
+                        ("from", &entry.remote.cidr),
+                        ("to", &entry.desired.cidr),
+                    ],
+                ),
+            );
+            tokio::time::sleep(API_SPACING).await;
+        }
+
         let mut created = 0usize;
 
         for rule in &plan.create {

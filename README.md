@@ -103,17 +103,22 @@ For each enabled target:
 1. Read the current ingress rules from the cloud API.
 2. Build the desired rule set from the target's rules and the detected public IP.
    Every desired rule carries a description; rows with a keyword also record it.
-3. When a row has a **description keyword**, the rule whose protocol and port
+3. **Delete first**: stale managed rules (description starting with `AutoFirewall`)
+   that no longer match are removed one at a time, which also keeps Tencent Cloud
+   policy indices valid. This has to happen before the update step — Aliyun
+   refuses to turn a rule into an exact copy of another one
+   (`InvalidOperation.RuleDuplicate`), and the stale rule usually is the one
+   holding the new address.
+4. When a row has a **description keyword**, the rule whose protocol and port
    match and whose description contains the keyword is adopted: its source IP is
    replaced in place (Aliyun `ModifySecurityGroupRule`) with its description and
    priority untouched. On Tencent Cloud, which has no per-rule update call, the
    rule is revoked and re-created with the same description. If the keyword
    matches several rules, the whole target is skipped with an error instead of
    guessing.
-4. Rows without a keyword keep the prefix-based ownership: stale rules whose
-   description starts with `AutoFirewall` are deleted one at a time, then the
-   missing rules are created.
-5. Re-read the group and verify that no rule remains in the plan.
+5. Missing rules are created last; rows without a keyword keep the prefix-based
+   ownership.
+6. Re-read the group and verify that no rule remains in the plan.
 
 Rules you created yourself are never deleted, even after the matching row is
 removed from the configuration.

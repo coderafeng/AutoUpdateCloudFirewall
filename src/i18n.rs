@@ -1378,6 +1378,12 @@ texts! {
         ja: "{protocol} {port} の送信元 IP を更新",
         ko: "{protocol} {port}의 원본 IP 갱신"
     },
+    WUpdateDuplicate => {
+        en: "update {protocol} {port} — another rule already allows {cidr}, delete that duplicate rule first",
+        zh: "更新 {protocol} {port}（安全组里已有另一条同协议、同端口、源为 {cidr} 的规则，请先删除重复规则）",
+        ja: "{protocol} {port} を更新できません（{cidr} を許可する同プロトコル・同ポートのルールが既に存在します。重複ルールを先に削除してください）",
+        ko: "{protocol} {port}을(를) 갱신할 수 없습니다({cidr}을(를) 허용하는 동일 프로토콜·포트 규칙이 이미 있습니다. 중복 규칙을 먼저 삭제하세요)"
+    },
     WAmbiguousRule => {
         en: "{target} skipped: port {port} keyword \"{keyword}\" matches {count} rules — make the keyword more specific",
         zh: "{target} 已跳过：端口 {port} 的关键字「{keyword}」命中了 {count} 条规则，请把关键字写得更精确",

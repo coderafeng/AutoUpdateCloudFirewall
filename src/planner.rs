@@ -164,6 +164,11 @@ pub fn desired_rules(rules: &[RuleSpec], ip: &str, prefix: &str) -> Vec<DesiredR
 /// port and description keyword) and are updated in place. Rules without a
 /// keyword keep the prefix-based ownership: a managed rule that no longer
 /// matches is deleted before the desired rule is created again.
+///
+/// The caller must apply `delete` *before* `update`: Aliyun rejects a modify
+/// that would make the rule identical to another one already in the group
+/// (`InvalidOperation.RuleDuplicate`, HTTP 400), and the stale rule usually is
+/// the one still holding the new address.
 pub fn plan(remote: &[RemoteRule], desired: &[DesiredRule], prefix: &str) -> SyncPlan {
     let mut plan = SyncPlan::default();
     let mut claimed: Vec<bool> = vec![false; remote.len()];
