@@ -1,6 +1,10 @@
 # Build a release binary with the platform-suffixed asset name, and optionally
 # publish it together with the multilingual release notes.
 #
+# The canonical release path is `.github/workflows/release.yml`: pushing a `v*`
+# tag builds all three platforms in CI and attaches them to the release. This
+# script is the local escape hatch — it builds the platform it runs on.
+#
 #   pwsh tools/release.ps1 -Version 1.0.0
 #   pwsh tools/release.ps1 -Version 1.0.0 -Publish
 #
