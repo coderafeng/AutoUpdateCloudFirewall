@@ -6,12 +6,20 @@ use crate::i18n::{self, Text};
 
 pub const CONFIG_VERSION: u32 = 1;
 
+/// Smallest accepted sync interval. Below this the cloud API calls and log
+/// lines would pile up for no benefit, so both the UI validation and the
+/// worker clamp to it.
+pub const MIN_INTERVAL_SECS: u64 = 60;
+
+/// Interval used when a config has no `check_interval_secs` yet.
+pub const DEFAULT_INTERVAL_SECS: u64 = 300;
+
 fn default_true() -> bool {
     true
 }
 
 fn default_interval() -> u64 {
-    300
+    DEFAULT_INTERVAL_SECS
 }
 
 fn default_prefix() -> String {
@@ -544,7 +552,7 @@ impl AppConfig {
 
     /// Settings that changed since the config was loaded by the worker.
     pub fn sync_interval_secs(&self) -> u64 {
-        self.settings.check_interval_secs.max(30)
+        self.settings.check_interval_secs.max(MIN_INTERVAL_SECS)
     }
 }
 
@@ -645,5 +653,15 @@ mod tests {
     fn missing_language_falls_back_to_system() {
         let settings: Settings = serde_json::from_str("{}").unwrap();
         assert_eq!(settings.language, Language::from_system());
+    }
+
+    #[test]
+    fn interval_defaults_to_300_and_clamps_to_60() {
+        let mut config = AppConfig::default();
+        assert_eq!(config.settings.check_interval_secs, DEFAULT_INTERVAL_SECS);
+        assert_eq!(config.sync_interval_secs(), 300);
+
+        config.settings.check_interval_secs = 30;
+        assert_eq!(config.sync_interval_secs(), MIN_INTERVAL_SECS);
     }
 }

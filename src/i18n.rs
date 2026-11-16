@@ -307,10 +307,10 @@ texts! {
         ko: "설정 저장됨"
     },
     IntervalInvalid => {
-        en: "Interval must be a number of at least 30 seconds.",
-        zh: "间隔必须是至少 30 秒的数字。",
-        ja: "間隔は 30 秒以上の数値で指定してください。",
-        ko: "간격은 30초 이상의 숫자여야 합니다."
+        en: "Interval must be a number of at least 60 seconds.",
+        zh: "间隔必须是至少 60 秒的数字。",
+        ja: "間隔は 60 秒以上の数値で指定してください。",
+        ko: "간격은 60초 이상의 숫자여야 합니다."
     },
     AddService => {
         en: "Add at least one IP lookup service.",
@@ -629,10 +629,10 @@ texts! {
         ko: "확인 간격(초)"
     },
     CheckIntervalHint => {
-        en: "The worker re-checks the public IP on this interval. Minimum 30 seconds.",
-        zh: "后台任务按此间隔重新检查公网 IP，最小 30 秒。",
-        ja: "ワーカーはこの間隔でパブリック IP を再確認します。最小 30 秒。",
-        ko: "작업자는 이 간격으로 공인 IP를 다시 확인합니다. 최소 30초."
+        en: "The worker re-checks the public IP on this interval. Minimum 60 seconds, 300 by default.",
+        zh: "后台任务按此间隔重新检查公网 IP，最小 60 秒，默认 300 秒。",
+        ja: "ワーカーはこの間隔でパブリック IP を再確認します。最小 60 秒、既定値は 300 秒。",
+        ko: "작업자는 이 간격으로 공인 IP를 다시 확인합니다. 최소 60초, 기본값 300초."
     },
     ManagedPrefix => {
         en: "Managed-rule description prefix",

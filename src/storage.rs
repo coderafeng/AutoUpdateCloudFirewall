@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-use crate::model::AppConfig;
+use crate::model::{AppConfig, MIN_INTERVAL_SECS};
 
 const APP_DIR: &str = "AutoUpdateCloudFirewall";
 const KEYRING_SERVICE: &str = "AutoUpdateCloudFirewall";
@@ -46,7 +46,13 @@ pub fn load_config() -> AppConfig {
     let path = config_path();
     match fs::read_to_string(&path) {
         Ok(text) => match serde_json::from_str::<AppConfig>(&text) {
-            Ok(config) => config,
+            Ok(mut config) => {
+                // Configs written by older versions allowed 30s; raise them to
+                // the current minimum so the settings page edits a valid value.
+                config.settings.check_interval_secs =
+                    config.settings.check_interval_secs.max(MIN_INTERVAL_SECS);
+                config
+            }
             Err(err) => {
                 let backup = path.with_extension("json.broken");
                 let _ = fs::copy(&path, &backup);

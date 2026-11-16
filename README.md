@@ -89,7 +89,7 @@ cargo test
    an optional region override, and one row per ingress rule (protocol, port or
    range such as `8000-8010`, and an optional description keyword).
 3. Leave the app in the tray. It checks the public IP every
-   `check_interval_secs` (300 by default, minimum 30) and syncs when the address
+   `check_interval_secs` (300 by default, minimum 60) and syncs when the address
    changes. Use **Sync now** to force a run, **Detect IP** to refresh the address
    immediately.
 4. Tray menu: **Show window**, **Hide window**, **Sync now**,

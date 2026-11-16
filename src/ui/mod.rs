@@ -26,7 +26,7 @@ use tokio::sync::mpsc::UnboundedSender;
 
 use crate::i18n::{self, Text};
 use crate::logging::{Level, LogEntry};
-use crate::model::{AppConfig, Language, ProviderKind, describe_port_rules};
+use crate::model::{AppConfig, Language, MIN_INTERVAL_SECS, ProviderKind, describe_port_rules};
 use crate::platform::{self, autostart};
 use crate::storage;
 use crate::tray::Tray;
@@ -1573,7 +1573,7 @@ impl AppView {
         let prefix_text = self.settings_prefix.read(cx).value().to_string();
 
         let interval = match interval_text.trim().parse::<u64>() {
-            Ok(value) if value >= 30 => value,
+            Ok(value) if value >= MIN_INTERVAL_SECS => value,
             _ => {
                 let message = self.t(Text::IntervalInvalid).to_string();
                 window.push_notification(message.clone(), cx);
