@@ -69,8 +69,8 @@ pwsh tools/release.ps1 -Version 1.0.0 -Publish  # GitHub Release も作成
 
 成果物は `dist/` に出力され、ファイル名にプラットフォームが付きます：
 `auto-update-cloud-firewall-x86_64-windows.exe`、
-`auto-update-cloud-firewall-x86_64-darwin.exe`、
-`auto-update-cloud-firewall-x86_64-linux.exe`。
+`auto-update-cloud-firewall-x86_64-darwin`、
+`auto-update-cloud-firewall-x86_64-linux`。
 スクリプトはビルド前に `cargo fmt --check`、clippy、テストを実行し、リリースノートは
 `docs/releases/<バージョン>.md`（4 言語）から取得します。各プラットフォームのバイナリは
 その環境（または CI）でビルドする必要があります。

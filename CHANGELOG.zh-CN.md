@@ -32,7 +32,9 @@
 - 四种界面语言——英语、简体中文、日语、韩语，切换后立即作用于窗口、对话框、托盘菜单
   与新增日志。
 - 密钥保存在系统凭据存储中，`config.json` 只记录 AccessKey ID。
-- 发布产物按平台命名：`auto-update-cloud-firewall-x86_64-{windows,darwin,linux}.exe`。
+- 发布产物按平台命名：`auto-update-cloud-firewall-x86_64-windows.exe`、
+  `auto-update-cloud-firewall-x86_64-darwin`、`auto-update-cloud-firewall-x86_64-linux`
+  ——只有 Windows 带 `.exe` 扩展名。
 
 ### 变更
 

@@ -38,7 +38,9 @@
 - シークレットは OS の資格情報ストアに保存し、`config.json` には AccessKey ID だけを
   記録します。
 - リリース成果物はプラットフォーム別に
-  `auto-update-cloud-firewall-x86_64-{windows,darwin,linux}.exe` として公開します。
+  `auto-update-cloud-firewall-x86_64-windows.exe`、
+  `auto-update-cloud-firewall-x86_64-darwin`、`auto-update-cloud-firewall-x86_64-linux`
+  として公開します（`.exe` が付くのは Windows のみ）。
 
 ### 変更
 

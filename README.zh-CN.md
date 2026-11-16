@@ -69,8 +69,8 @@ pwsh tools/release.ps1 -Version 1.0.0 -Publish  # 同时创建 GitHub Release
 
 产物固定在 `dist/`，文件名带平台后缀：
 `auto-update-cloud-firewall-x86_64-windows.exe`、
-`auto-update-cloud-firewall-x86_64-darwin.exe`、
-`auto-update-cloud-firewall-x86_64-linux.exe`。
+`auto-update-cloud-firewall-x86_64-darwin`、
+`auto-update-cloud-firewall-x86_64-linux`。
 脚本会在构建前跑完 `cargo fmt --check`、clippy 和测试，发布说明取自
 `docs/releases/<版本>.md`（四语）。每个平台的二进制需要在对应系统（或 CI）上构建。
 

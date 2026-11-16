@@ -37,7 +37,9 @@ First stable release.
   instantly across the window, dialogs, tray menu and new log lines.
 - Secrets in the OS credential store; `config.json` only holds the AccessKey ID.
 - Release binaries are published per platform as
-  `auto-update-cloud-firewall-x86_64-{windows,darwin,linux}.exe`.
+  `auto-update-cloud-firewall-x86_64-windows.exe`,
+  `auto-update-cloud-firewall-x86_64-darwin` and
+  `auto-update-cloud-firewall-x86_64-linux` — only Windows carries `.exe`.
 
 ### Changed
 

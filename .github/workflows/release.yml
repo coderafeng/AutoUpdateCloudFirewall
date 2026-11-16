@@ -99,7 +99,9 @@ jobs:
           BUILT: ${{ matrix.built }}
         run: |
           set -euo pipefail
-          asset="${ASSET_STEM}-x86_64-${PLATFORM}.exe"
+          # Only Windows carries an extension; macOS and Linux stay extensionless.
+          asset="${ASSET_STEM}-x86_64-${PLATFORM}"
+          if [ "${PLATFORM}" = "windows" ]; then asset="${asset}.exe"; fi
           mkdir -p dist
           cp -f "target/${TRIPLE}/release/${BUILT}" "dist/${asset}"
           chmod +x "dist/${asset}"

@@ -8,10 +8,10 @@
 #   pwsh tools/release.ps1 -Version 1.0.0
 #   pwsh tools/release.ps1 -Version 1.0.0 -Publish
 #
-# Asset naming (same for every platform, the caller decides what to upload):
+# Asset naming follows the platform binary convention:
 #   dist/auto-update-cloud-firewall-x86_64-windows.exe
-#   dist/auto-update-cloud-firewall-x86_64-darwin.exe
-#   dist/auto-update-cloud-firewall-x86_64-linux.exe
+#   dist/auto-update-cloud-firewall-x86_64-darwin
+#   dist/auto-update-cloud-firewall-x86_64-linux
 #
 # Each platform has to be built on its own machine (or in CI): the script only
 # builds the platform it runs on unless -Platform names another installed
@@ -55,8 +55,8 @@ if (-not $Platform) {
 
 switch ($Platform) {
     "windows" { $triple = "x86_64-pc-windows-msvc"; $extension = ".exe" }
-    "darwin" { $triple = "x86_64-apple-darwin"; $extension = ".exe" }
-    "linux" { $triple = "x86_64-unknown-linux-gnu"; $extension = ".exe" }
+    "darwin" { $triple = "x86_64-apple-darwin"; $extension = "" }
+    "linux" { $triple = "x86_64-unknown-linux-gnu"; $extension = "" }
 }
 
 $asset = "$AssetStem-x86_64-$Platform$extension"
@@ -104,7 +104,7 @@ Write-Host ""
 
 # Every asset that is already present in dist/ is uploaded together, so the
 # Windows build does not need to know about the other two.
-$assets = @(Get-ChildItem "dist" -Filter "$AssetStem-x86_64-*$extension" | ForEach-Object { $_.FullName })
+$assets = @(Get-ChildItem "dist" -Filter "$AssetStem-x86_64-*" -File | ForEach-Object { $_.FullName })
 $tag = "v$Version"
 
 Write-Host "assets to upload:"

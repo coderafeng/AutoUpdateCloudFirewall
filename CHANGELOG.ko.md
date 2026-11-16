@@ -37,7 +37,9 @@
 - 비밀 정보는 OS 자격 증명 저장소에 보관하고, `config.json`에는 AccessKey ID만
   기록합니다.
 - 릴리스 산출물은 플랫폼별로
-  `auto-update-cloud-firewall-x86_64-{windows,darwin,linux}.exe` 이름으로 공개합니다.
+  `auto-update-cloud-firewall-x86_64-windows.exe`,
+  `auto-update-cloud-firewall-x86_64-darwin`,
+  `auto-update-cloud-firewall-x86_64-linux` 이름으로 공개합니다(확장자는 Windows에만 붙습니다).
 
 ### 변경
 
