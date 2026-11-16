@@ -90,6 +90,8 @@ Artifacts land in `dist/` with a platform suffix:
 `auto-update-cloud-firewall-x86_64-windows.exe`,
 `auto-update-cloud-firewall-x86_64-darwin`,
 `auto-update-cloud-firewall-x86_64-linux`.
+Linux also gets `auto-update-cloud-firewall-x86_64-linux.tar.gz`, which keeps the
+executable bit and bundles `LICENSE` and `README.md`.
 The script runs `cargo fmt --check`, clippy and the test suite first, and takes the
 release notes from `docs/releases/<version>.md` (four languages). Each platform
 binary has to be built on that platform or in CI.

@@ -98,6 +98,17 @@ if (-not (Test-Path $built)) { throw "build output not found: $built" }
 New-Item -ItemType Directory -Force -Path "dist" | Out-Null
 Copy-Item $built "dist/$asset" -Force
 
+# Linux also ships a tarball: it preserves the executable bit and carries the
+# license and readme next to the binary.
+if ($Platform -eq "linux") {
+    $pack = "target/pack/$asset"
+    New-Item -ItemType Directory -Force -Path $pack | Out-Null
+    Copy-Item "dist/$asset", "LICENSE", "README.md" $pack -Force
+    tar -czf "dist/$asset.tar.gz" -C (Split-Path -Parent $pack) $asset
+    if ($LASTEXITCODE -ne 0) { throw "failed to create dist/$asset.tar.gz" }
+    Write-Host "==> wrote dist/$asset.tar.gz"
+}
+
 $sizeMb = [math]::Round((Get-Item "dist/$asset").Length / 1MB, 1)
 Write-Host "==> wrote dist/$asset ($sizeMb MB)"
 Write-Host ""

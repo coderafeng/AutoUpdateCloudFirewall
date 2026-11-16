@@ -35,6 +35,8 @@
 - 发布产物按平台命名：`auto-update-cloud-firewall-x86_64-windows.exe`、
   `auto-update-cloud-firewall-x86_64-darwin`、`auto-update-cloud-firewall-x86_64-linux`
   ——只有 Windows 带 `.exe` 扩展名。
+- Linux 额外提供 `auto-update-cloud-firewall-x86_64-linux.tar.gz`，保留可执行权限，
+  包内含 `LICENSE` 与 `README.md`。
 
 ### 变更
 

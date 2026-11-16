@@ -71,6 +71,8 @@ pwsh tools/release.ps1 -Version 1.0.0 -Publish  # GitHub Release も作成
 `auto-update-cloud-firewall-x86_64-windows.exe`、
 `auto-update-cloud-firewall-x86_64-darwin`、
 `auto-update-cloud-firewall-x86_64-linux`。
+Linux は `auto-update-cloud-firewall-x86_64-linux.tar.gz` でも配布し、実行権限と
+`LICENSE`・`README.md` を同梱します。
 スクリプトはビルド前に `cargo fmt --check`、clippy、テストを実行し、リリースノートは
 `docs/releases/<バージョン>.md`（4 言語）から取得します。各プラットフォームのバイナリは
 その環境（または CI）でビルドする必要があります。

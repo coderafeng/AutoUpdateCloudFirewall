@@ -40,6 +40,8 @@
   `auto-update-cloud-firewall-x86_64-windows.exe`,
   `auto-update-cloud-firewall-x86_64-darwin`,
   `auto-update-cloud-firewall-x86_64-linux` 이름으로 공개합니다(확장자는 Windows에만 붙습니다).
+- Linux는 `auto-update-cloud-firewall-x86_64-linux.tar.gz`로도 제공합니다. 실행 권한이
+  유지되고 `LICENSE`와 `README.md`가 함께 들어 있습니다.
 
 ### 변경
 

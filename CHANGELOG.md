@@ -40,6 +40,9 @@ First stable release.
   `auto-update-cloud-firewall-x86_64-windows.exe`,
   `auto-update-cloud-firewall-x86_64-darwin` and
   `auto-update-cloud-firewall-x86_64-linux` — only Windows carries `.exe`.
+- Linux is additionally published as
+  `auto-update-cloud-firewall-x86_64-linux.tar.gz`, which keeps the executable
+  bit and bundles `LICENSE` and `README.md`.
 
 ### Changed
 

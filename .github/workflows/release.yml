@@ -105,6 +105,14 @@ jobs:
           mkdir -p dist
           cp -f "target/${TRIPLE}/release/${BUILT}" "dist/${asset}"
           chmod +x "dist/${asset}"
+          # Linux also ships a tarball: it preserves the executable bit and can
+          # carry the license and readme next to the binary.
+          if [ "${PLATFORM}" = "linux" ]; then
+            pack="target/pack/${asset}"
+            mkdir -p "$pack"
+            cp -f "dist/${asset}" LICENSE README.md "$pack/"
+            tar -czf "dist/${asset}.tar.gz" -C "$(dirname "$pack")" "$asset"
+          fi
           ls -l dist
 
       - uses: actions/upload-artifact@v4

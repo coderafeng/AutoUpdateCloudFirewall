@@ -41,6 +41,8 @@
   `auto-update-cloud-firewall-x86_64-windows.exe`、
   `auto-update-cloud-firewall-x86_64-darwin`、`auto-update-cloud-firewall-x86_64-linux`
   として公開します（`.exe` が付くのは Windows のみ）。
+- Linux は `auto-update-cloud-firewall-x86_64-linux.tar.gz` でも配布します。実行権限が
+  保たれ、`LICENSE` と `README.md` も同梱されます。
 
 ### 変更
 
