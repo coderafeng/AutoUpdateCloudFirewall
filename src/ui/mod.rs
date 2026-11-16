@@ -483,7 +483,20 @@ impl AppView {
                             div()
                                 .text_xs()
                                 .text_color(cx.theme().muted_foreground)
-                                .child(format!("v{}", env!("CARGO_PKG_VERSION"))),
+                                .child(format!(
+                                    "v{} · {}",
+                                    env!("CARGO_PKG_VERSION"),
+                                    self.t(Text::LicenseMit)
+                                )),
+                        )
+                        .child(
+                            Button::new("footer-github")
+                                .ghost()
+                                .xsmall()
+                                .icon(Icon::from(gpui_kit::assets::IconName::Github))
+                                .label("GitHub")
+                                .tooltip(platform::REPOSITORY_URL)
+                                .on_click(|_, _, cx| cx.open_url(platform::REPOSITORY_URL)),
                         ),
                 ),
             )
@@ -1513,6 +1526,38 @@ impl AppView {
                     )),
             );
 
+        let version = env!("CARGO_PKG_VERSION");
+        let about = card(cx)
+            .child(section_title(
+                self.t(Text::SectionAbout),
+                &self.tr(Text::SectionAboutHint, &[("version", version)]),
+                cx,
+            ))
+            .child(link_row(
+                self.t(Text::SourceCode),
+                self.t(Text::SourceCodeHint),
+                platform::REPOSITORY_URL,
+                gpui_kit::assets::IconName::Github,
+                self.t(Text::OpenLink),
+                cx,
+            ))
+            .child(link_row(
+                self.t(Text::LicenseMit),
+                self.t(Text::LicenseMitHint),
+                platform::LICENSE_URL,
+                gpui_kit::assets::IconName::BookOpen,
+                self.t(Text::ReadLicense),
+                cx,
+            ))
+            .child(link_row(
+                self.t(Text::ProjectHomepage),
+                "rustsilk.com",
+                platform::HOMEPAGE_URL,
+                gpui_kit::assets::IconName::Globe,
+                self.t(Text::OpenLink),
+                cx,
+            ));
+
         v_flex()
             .gap_4()
             .child(language_card)
@@ -1551,6 +1596,7 @@ impl AppView {
             )
             .child(behavior_card)
             .child(maintenance)
+            .child(about)
             .into_any_element()
     }
 
@@ -1663,6 +1709,43 @@ fn setting_row(label: &str, hint: &str, switch: Switch, cx: &App) -> Div {
                 ),
         )
         .child(switch)
+}
+
+/// A settings row whose control is an external link button.
+fn link_row(
+    label: &str,
+    hint: &str,
+    url: &'static str,
+    icon: gpui_kit::assets::IconName,
+    action: &str,
+    cx: &App,
+) -> Div {
+    h_flex()
+        .justify_between()
+        .items_center()
+        .gap_4()
+        .py_2()
+        .child(
+            v_flex()
+                .gap_1()
+                .min_w(px(0.))
+                .child(div().text_sm().font_medium().child(label.to_string()))
+                .child(
+                    div()
+                        .text_xs()
+                        .text_color(cx.theme().muted_foreground)
+                        .child(hint.to_string()),
+                ),
+        )
+        .child(
+            Button::new(SharedString::from(url))
+                .outline()
+                .small()
+                .flex_shrink_0()
+                .icon(Icon::from(icon))
+                .label(action.to_string())
+                .on_click(move |_, _, cx| cx.open_url(url)),
+        )
 }
 
 fn pill(text: impl Into<SharedString>, color: Hsla) -> Div {

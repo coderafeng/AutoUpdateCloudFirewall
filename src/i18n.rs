@@ -730,6 +730,60 @@ texts! {
         ja: "設定とログの場所。",
         ko: "구성 및 로그 위치입니다."
     },
+    SectionAbout => {
+        en: "About",
+        zh: "关于",
+        ja: "このアプリについて",
+        ko: "정보"
+    },
+    SectionAboutHint => {
+        en: "Version {version} · source code and license.",
+        zh: "版本 {version} · 源代码与许可证。",
+        ja: "バージョン {version} · ソースコードとライセンス。",
+        ko: "버전 {version} · 소스 코드 및 라이선스."
+    },
+    SourceCode => {
+        en: "Source code",
+        zh: "源代码",
+        ja: "ソースコード",
+        ko: "소스 코드"
+    },
+    SourceCodeHint => {
+        en: "The full project lives on GitHub; issues and pull requests are welcome.",
+        zh: "完整项目托管在 GitHub，欢迎提交 issue 和 pull request。",
+        ja: "プロジェクト全体は GitHub にあります。issue と pull request を歓迎します。",
+        ko: "전체 프로젝트는 GitHub에 있습니다. 이슈와 풀 리퀘스트를 환영합니다."
+    },
+    LicenseMit => {
+        en: "MIT License",
+        zh: "MIT 许可证",
+        ja: "MIT ライセンス",
+        ko: "MIT 라이선스"
+    },
+    LicenseMitHint => {
+        en: "Use, modify and redistribute freely, as long as the copyright notice is kept.",
+        zh: "保留版权声明即可自由使用、修改和再分发。",
+        ja: "著作権表示を保持すれば、自由に使用・変更・再配布できます。",
+        ko: "저작권 표시를 유지하는 한 자유롭게 사용, 수정, 재배포할 수 있습니다."
+    },
+    ReadLicense => {
+        en: "Read license",
+        zh: "查看许可证",
+        ja: "ライセンスを読む",
+        ko: "라이선스 보기"
+    },
+    ProjectHomepage => {
+        en: "Project homepage",
+        zh: "项目主页",
+        ja: "プロジェクトサイト",
+        ko: "프로젝트 홈페이지"
+    },
+    OpenLink => {
+        en: "Open",
+        zh: "打开",
+        ja: "開く",
+        ko: "열기"
+    },
     OpenConfigFolder => {
         en: "Open config folder",
         zh: "打开配置文件夹",

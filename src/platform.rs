@@ -2,6 +2,12 @@
 
 pub const APP_TITLE: &str = "Auto Update Cloud Firewall";
 
+/// Project pages reachable from the sidebar footer and the settings page.
+pub const REPOSITORY_URL: &str = "https://github.com/coderafeng/AutoUpdateCloudFirewall";
+pub const LICENSE_URL: &str =
+    "https://github.com/coderafeng/AutoUpdateCloudFirewall/blob/main/LICENSE";
+pub const HOMEPAGE_URL: &str = "https://rustsilk.com";
+
 /// Bring the main window back from the tray (or from a minimized state).
 pub fn show_main_window() {
     #[cfg(windows)]
