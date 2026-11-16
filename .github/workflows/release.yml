@@ -63,7 +63,7 @@ jobs:
             libgtk-3-dev libayatana-appindicator3-dev \
             libxkbcommon-dev libxkbcommon-x11-dev \
             libwayland-dev libfontconfig1-dev libfreetype6-dev \
-            libvulkan-dev
+            libvulkan-dev libxdo-dev
 
       - uses: dtolnay/rust-toolchain@stable
         with:

@@ -50,9 +50,14 @@ fn wide(text: &str) -> Vec<u16> {
 
 /// Windows auto-start registration under `HKCU\...\Run`.
 pub mod autostart {
-    use anyhow::{Context, Result};
+    use anyhow::Result;
 
+    #[cfg(windows)]
+    use anyhow::Context;
+
+    #[cfg(windows)]
     const RUN_KEY: &str = r"Software\Microsoft\Windows\CurrentVersion\Run";
+    #[cfg(windows)]
     const VALUE_NAME: &str = "AutoUpdateCloudFirewall";
 
     #[cfg(windows)]
