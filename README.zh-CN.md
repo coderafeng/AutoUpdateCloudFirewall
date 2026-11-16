@@ -95,6 +95,9 @@ cargo test
 | `src/platform.rs` | 显示/隐藏原生窗口，Windows 开机自启。 |
 | `src/tray.rs` | 通知区域图标与菜单。 |
 | `src/ui/` | 侧边栏外壳、页面以及账号/目标对话框。 |
+| `assets/` | 图标源文件（`logo.svg`、`logo-compact.svg`、`logo-mono.svg`）及生成的 PNG/ICO。 |
+| `tools/generate-icons.py` | 从 SVG 源重新生成整套图标。 |
+| `build.rs` | 嵌入可执行文件图标和版本资源。 |
 
 ## 限制
 

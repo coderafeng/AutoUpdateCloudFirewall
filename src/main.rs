@@ -4,6 +4,7 @@
 //! sync with the current public IPv4 address.
 
 mod i18n;
+mod icon;
 mod ip;
 mod logging;
 mod model;
@@ -15,7 +16,6 @@ mod tray;
 mod ui;
 mod worker;
 
-use gpui_kit::assets::Assets;
 use gpui_kit::*;
 
 use crate::platform::APP_TITLE;
@@ -52,8 +52,9 @@ fn main() {
     };
 
     let start_hidden = config.settings.start_minimized;
+    let window_icon = icon::window_icon().ok();
 
-    let app = gpui_kit::application().with_assets(Assets);
+    let app = gpui_kit::application().with_assets(icon::AppAssets);
     app.run(move |cx| {
         gpui_kit::init(cx);
 
@@ -64,6 +65,7 @@ fn main() {
                 appears_transparent: false,
                 traffic_light_position: None,
             }),
+            icon: window_icon,
             show: !start_hidden,
             ..Default::default()
         };

@@ -5,9 +5,11 @@ edition = "2024"
 description = "Graphical cloud security-group firewall auto-updater (Aliyun ECS / Tencent Cloud CVM)"
 license = "MIT"
 homepage = "https://rustsilk.com"
+build = "build.rs"
 
 [dependencies]
 gpui-kit = "0.9.1"
+image = { version = "0.25", default-features = false, features = ["png"] }
 
 anyhow = "1"
 base64 = "0.22"
@@ -32,8 +34,12 @@ winreg = "0.55"
 windows-sys = { version = "0.59", features = [
     "Win32_Foundation",
     "Win32_Globalization",
+    "Win32_UI_HiDpi",
     "Win32_UI_WindowsAndMessaging",
 ] }
+
+[target.'cfg(windows)'.build-dependencies]
+winresource = "0.1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 keyring = { version = "3", features = ["apple-native"] }

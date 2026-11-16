@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Auto Update Cloud Firewall (monochrome)">
+  <defs>
+    <!-- Cloud silhouette on a 24x16 grid, scaled x25 and centred on the tile. -->
+    <path id="cloud"
+          d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+
+    <!-- Solid white cloud with the topology cut out, for dark taskbars. -->
+    <mask id="cut" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect x="0" y="0" width="1024" height="1024" fill="#FFFFFF"/>
+      <g fill="#000000">
+        <rect x="462" y="390" width="100" height="100" rx="28"/>
+        <rect x="376" y="558" width="100" height="100" rx="28"/>
+        <rect x="548" y="558" width="100" height="100" rx="28"/>
+      </g>
+      <g fill="none" stroke="#000000" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M512 478V532"/>
+        <path d="M426 564V530H598V564"/>
+      </g>
+    </mask>
+  </defs>
+
+  <g mask="url(#cut)">
+    <g transform="translate(212 212) scale(25)">
+      <use href="#cloud" fill="#FFFFFF"/>
+    </g>
+  </g>
+</svg>

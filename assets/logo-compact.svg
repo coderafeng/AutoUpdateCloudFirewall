@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Auto Update Cloud Firewall (compact)">
+  <!-- Small-size variant: the topology mark is dropped so the cloud stays legible
+       in a 16 px notification area. -->
+  <defs>
+    <linearGradient id="brand" x1="296" y1="104" x2="736" y2="920" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5B95FF"/>
+      <stop offset="0.52" stop-color="#2E6CF0"/>
+      <stop offset="1" stop-color="#1B45C7"/>
+    </linearGradient>
+    <path id="cloud"
+          d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+  </defs>
+
+  <rect x="40" y="40" width="944" height="944" rx="230" fill="url(#brand)"/>
+  <g transform="translate(140 140) scale(31)">
+    <use href="#cloud" fill="#FFFFFF"/>
+  </g>
+</svg>

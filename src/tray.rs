@@ -51,7 +51,7 @@ pub fn create(events: EventSender, language: Language) -> Result<Tray> {
     menu.append_items(&[&show, &hide, &separator, &sync, &config, &separator, &quit])
         .context("build tray menu")?;
 
-    let icon = build_icon(32).context("build tray icon")?;
+    let icon = build_icon().context("build tray icon")?;
     let tray = TrayIconBuilder::new()
         .with_menu(Box::new(menu))
         .with_menu_on_left_click(true)
@@ -107,68 +107,8 @@ fn action_for(id: &str) -> Option<TrayAction> {
     }
 }
 
-/// Draw a small blue shield with a white check mark.
-fn build_icon(size: u32) -> Result<Icon> {
-    let size_f = size as f32;
-    let mut rgba = vec![0u8; (size * size * 4) as usize];
-    let center = size_f / 2.0;
-    let check = [
-        (0.32 * size_f, 0.52 * size_f),
-        (0.46 * size_f, 0.66 * size_f),
-        (0.70 * size_f, 0.36 * size_f),
-    ];
-
-    for y in 0..size {
-        for x in 0..size {
-            let px = x as f32 + 0.5;
-            let py = y as f32 + 0.5;
-            let dx = (px - center) / (size_f * 0.38);
-            let dy = (py - center) / (size_f * 0.44);
-            let inside = dx * dx + dy * dy <= 1.0;
-            if !inside {
-                continue;
-            }
-
-            let t = (py / size_f).clamp(0.0, 1.0);
-            let r = lerp(37.0, 29.0, t) as u8;
-            let g = lerp(99.0, 64.0, t) as u8;
-            let b = lerp(235.0, 175.0, t) as u8;
-
-            let stroke = (size_f * 0.055).max(1.6);
-            let on_check = (segment_distance(px, py, check[0], check[1]) < stroke
-                || segment_distance(px, py, check[1], check[2]) < stroke)
-                && (dy > -0.75);
-
-            let (r, g, b) = if on_check { (255, 255, 255) } else { (r, g, b) };
-            let ix = ((y * size + x) * 4) as usize;
-            rgba[ix] = r;
-            rgba[ix + 1] = g;
-            rgba[ix + 2] = b;
-            rgba[ix + 3] = 255;
-        }
-    }
-
-    Icon::from_rgba(rgba, size, size).context("convert tray icon pixels")
-}
-
-fn lerp(a: f32, b: f32, t: f32) -> f32 {
-    a + (b - a) * t
-}
-
-fn segment_distance(px: f32, py: f32, a: (f32, f32), b: (f32, f32)) -> f32 {
-    let (ax, ay) = a;
-    let (bx, by) = b;
-    let vx = bx - ax;
-    let vy = by - ay;
-    let wx = px - ax;
-    let wy = py - ay;
-    let length_sq = vx * vx + vy * vy;
-    let t = if length_sq <= f32::EPSILON {
-        0.0
-    } else {
-        ((wx * vx + wy * wy) / length_sq).clamp(0.0, 1.0)
-    };
-    let cx = ax + t * vx;
-    let cy = ay + t * vy;
-    ((px - cx).powi(2) + (py - cy).powi(2)).sqrt()
+/// The packaged brand mark, rendered from `assets/logo.svg`.
+fn build_icon() -> Result<Icon> {
+    let (rgba, width, height) = crate::icon::tray_pixels()?;
+    Icon::from_rgba(rgba, width, height).context("convert tray icon pixels")
 }

@@ -425,16 +425,10 @@ impl AppView {
                     h_flex()
                         .gap_2()
                         .child(
-                            div()
-                                .flex()
-                                .items_center()
-                                .justify_center()
-                                .size_8()
-                                .flex_shrink_0()
-                                .rounded(cx.theme().radius)
-                                .bg(cx.theme().primary)
-                                .text_color(cx.theme().primary_foreground)
-                                .child(Icon::new(IconName::Network).size_4()),
+                            img(crate::icon::LOGO_PATH)
+                                .w(px(32.))
+                                .h(px(32.))
+                                .flex_shrink_0(),
                         )
                         .child(
                             v_flex()
