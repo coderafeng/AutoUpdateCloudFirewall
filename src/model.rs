@@ -172,15 +172,6 @@ pub struct PortRange {
 }
 
 impl PortRange {
-    #[cfg(test)]
-    pub fn single(protocol: Protocol, port: u16) -> Self {
-        Self {
-            protocol,
-            start: port,
-            end: port,
-        }
-    }
-
     /// `80` for a single port, `8000-8010` for a range.
     pub fn compact(self) -> String {
         if self.start == self.end {
@@ -198,6 +189,56 @@ impl PortRange {
     /// Tencent expects `80` or `8000-8010`.
     pub fn tencent_port(self) -> String {
         self.compact()
+    }
+}
+
+/// One configured ingress rule: a port range plus an optional keyword that
+/// picks out the existing security-group rule by its description.
+///
+/// An empty keyword keeps the legacy behaviour: the rule is owned through the
+/// configured description prefix.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RuleSpec {
+    pub protocol: Protocol,
+    pub start: u16,
+    pub end: u16,
+    #[serde(default)]
+    pub keyword: String,
+}
+
+impl RuleSpec {
+    pub fn new(protocol: Protocol, start: u16, end: u16, keyword: impl Into<String>) -> Self {
+        Self {
+            protocol,
+            start,
+            end,
+            keyword: keyword.into(),
+        }
+    }
+
+    pub fn port_range(&self) -> PortRange {
+        PortRange {
+            protocol: self.protocol,
+            start: self.start,
+            end: self.end,
+        }
+    }
+
+    /// `80` for a single port, `8000-8010` for a range.
+    pub fn port_text(&self) -> String {
+        self.port_range().compact()
+    }
+
+    pub fn has_keyword(&self) -> bool {
+        !self.keyword.trim().is_empty()
+    }
+
+    /// Same protocol, same port and the same keyword (case-insensitive).
+    pub fn same_spec(&self, other: &Self) -> bool {
+        self.protocol == other.protocol
+            && self.start == other.start
+            && self.end == other.end
+            && self.keyword.trim().to_lowercase() == other.keyword.trim().to_lowercase()
     }
 }
 
@@ -259,111 +300,54 @@ impl PortError {
     }
 }
 
-/// Parse the human friendly port text used in the UI.
-///
-/// Grammar (semicolon separated, protocol groups optional, `tcp` by default):
-/// `22,80,443; udp:53; tcp:8000-8010`
-pub fn parse_port_rules(input: &str) -> Result<Vec<PortRange>, PortError> {
-    let mut rules: Vec<PortRange> = Vec::new();
-
-    for group in input.split(';') {
-        let group = group.trim();
-        if group.is_empty() {
-            continue;
-        }
-        let (protocol, ports) = if let Some(rest) = group.strip_prefix("tcp:").or_else(|| {
-            group
-                .get(..4)
-                .filter(|p| p.eq_ignore_ascii_case("tcp:"))
-                .map(|_| &group[4..])
-        }) {
-            (Protocol::Tcp, rest)
-        } else if let Some(rest) = group.strip_prefix("udp:").or_else(|| {
-            group
-                .get(..4)
-                .filter(|p| p.eq_ignore_ascii_case("udp:"))
-                .map(|_| &group[4..])
-        }) {
-            (Protocol::Udp, rest)
-        } else {
-            (Protocol::Tcp, group)
-        };
-
-        for item in ports.split([',', ' ', '\t', '\n']) {
-            let item = item.trim();
-            if item.is_empty() {
-                continue;
-            }
-            let lower = item.to_ascii_lowercase();
-            let lower = lower.trim();
-            let (start, end) = if let Some((a, b)) = lower.split_once('-') {
-                (a.trim(), b.trim())
-            } else if let Some((a, b)) = lower.split_once('/') {
-                (a.trim(), b.trim())
-            } else {
-                (lower, lower)
-            };
-            let start: u16 = start
-                .parse()
-                .map_err(|_| PortError::Invalid(item.to_string()))?;
-            let end: u16 = end
-                .parse()
-                .map_err(|_| PortError::Invalid(item.to_string()))?;
-            if start == 0 || end == 0 {
-                return Err(PortError::OutOfRange(item.to_string()));
-            }
-            if start > end {
-                return Err(PortError::Reversed(item.to_string()));
-            }
-            let rule = PortRange {
-                protocol,
-                start,
-                end,
-            };
-            if !rules.contains(&rule) {
-                rules.push(rule);
-            }
-        }
-    }
-
-    if rules.is_empty() {
+/// Parse one port field of the rule editor: a single port (`22`) or an
+/// inclusive range (`8000-8010` / `8000/8010`).
+pub fn parse_port_field(input: &str) -> Result<(u16, u16), PortError> {
+    let item = input.trim();
+    if item.is_empty() {
         return Err(PortError::Empty);
     }
-    Ok(rules)
-}
-
-/// Render port rules back into the editable text form.
-pub fn format_port_rules(rules: &[PortRange]) -> String {
-    let mut groups: Vec<(Protocol, Vec<String>)> = Vec::new();
-    for rule in rules {
-        let entry = groups
-            .iter_mut()
-            .find(|(protocol, _)| *protocol == rule.protocol);
-        let list = match entry {
-            Some((_, list)) => list,
-            None => {
-                groups.push((rule.protocol, Vec::new()));
-                &mut groups.last_mut().expect("just pushed").1
-            }
-        };
-        list.push(rule.compact());
+    if item
+        .chars()
+        .any(|ch| ch.is_whitespace() || matches!(ch, ',' | ';' | ':'))
+    {
+        return Err(PortError::Invalid(item.to_string()));
     }
-    groups
-        .into_iter()
-        .map(|(protocol, ports)| format!("{}:{}", protocol.as_lower(), ports.join(",")))
-        .collect::<Vec<_>>()
-        .join("; ")
+    let (start, end) = if let Some((a, b)) = item.split_once('-') {
+        (a.trim(), b.trim())
+    } else if let Some((a, b)) = item.split_once('/') {
+        (a.trim(), b.trim())
+    } else {
+        (item, item)
+    };
+    let start: u16 = start
+        .parse()
+        .map_err(|_| PortError::Invalid(item.to_string()))?;
+    let end: u16 = end
+        .parse()
+        .map_err(|_| PortError::Invalid(item.to_string()))?;
+    if start == 0 || end == 0 {
+        return Err(PortError::OutOfRange(item.to_string()));
+    }
+    if start > end {
+        return Err(PortError::Reversed(item.to_string()));
+    }
+    Ok((start, end))
 }
 
-pub fn describe_port_rules(rules: &[PortRange], empty: &str) -> String {
+pub fn describe_port_rules(rules: &[RuleSpec], empty: &str) -> String {
     if rules.is_empty() {
         return empty.to_string();
     }
     let mut groups: Vec<(Protocol, Vec<String>)> = Vec::new();
     for rule in rules {
+        let mut text = rule.port_text();
+        if rule.has_keyword() {
+            text.push_str(&format!(" ({})", rule.keyword.trim()));
+        }
         match groups.iter_mut().find(|(p, _)| *p == rule.protocol) {
-            Some((_, list)) => list.push(rule.compact()),
-            None => groups.push((rule.protocol, vec![rule.compact()])),
+            Some((_, list)) => list.push(text),
+            None => groups.push((rule.protocol, vec![text])),
         }
     }
     groups
@@ -442,7 +426,7 @@ pub struct Target {
     pub region: String,
     pub security_group_id: String,
     #[serde(default)]
-    pub rules: Vec<PortRange>,
+    pub rules: Vec<RuleSpec>,
     #[serde(default = "default_true")]
     pub enabled: bool,
 }
@@ -569,29 +553,55 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parses_simple_port_list() {
-        let rules = parse_port_rules("22,80,443").unwrap();
-        assert_eq!(rules.len(), 3);
-        assert_eq!(rules[0], PortRange::single(Protocol::Tcp, 22));
-        assert_eq!(format_port_rules(&rules), "tcp:22,80,443");
+    fn parses_a_single_port_field() {
+        assert_eq!(parse_port_field("22"), Ok((22, 22)));
+        assert_eq!(parse_port_field(" 8000-8010 "), Ok((8000, 8010)));
+        assert_eq!(parse_port_field("8000/8010"), Ok((8000, 8010)));
     }
 
     #[test]
-    fn parses_protocol_groups_and_ranges() {
-        let rules = parse_port_rules("tcp:8000-8010; udp:53, 123").unwrap();
-        assert_eq!(rules.len(), 3);
-        assert_eq!(rules[0].start, 8000);
-        assert_eq!(rules[0].end, 8010);
-        assert_eq!(rules[1].protocol, Protocol::Udp);
-        assert_eq!(format_port_rules(&rules), "tcp:8000-8010; udp:53,123");
+    fn rejects_bad_port_fields() {
+        assert!(parse_port_field("").is_err());
+        assert!(parse_port_field("0").is_err());
+        assert!(parse_port_field("90-80").is_err());
+        assert!(parse_port_field("abc").is_err());
+        assert!(parse_port_field("22,80").is_err());
+        assert!(parse_port_field("tcp:22").is_err());
     }
 
     #[test]
-    fn rejects_bad_ports() {
-        assert!(parse_port_rules("0").is_err());
-        assert!(parse_port_rules("90-80").is_err());
-        assert!(parse_port_rules("abc").is_err());
-        assert!(parse_port_rules("   ").is_err());
+    fn rule_specs_round_trip_and_keep_old_configs_valid() {
+        let spec = RuleSpec::new(Protocol::Tcp, 22, 22, "home");
+        let json = serde_json::to_string(&spec).unwrap();
+        assert_eq!(serde_json::from_str::<RuleSpec>(&json).unwrap(), spec);
+
+        let old: RuleSpec =
+            serde_json::from_str(r#"{"protocol":"tcp","start":80,"end":80}"#).unwrap();
+        assert_eq!(old.keyword, "");
+        assert!(!old.has_keyword());
+    }
+
+    #[test]
+    fn duplicate_specs_compare_keywords_case_insensitively() {
+        let a = RuleSpec::new(Protocol::Tcp, 22, 22, "Home");
+        let b = RuleSpec::new(Protocol::Tcp, 22, 22, "home");
+        let c = RuleSpec::new(Protocol::Tcp, 22, 22, "web");
+        assert!(a.same_spec(&b));
+        assert!(!a.same_spec(&c));
+    }
+
+    #[test]
+    fn describes_rules_with_keywords() {
+        let rules = [
+            RuleSpec::new(Protocol::Tcp, 22, 22, "home"),
+            RuleSpec::new(Protocol::Tcp, 443, 443, ""),
+            RuleSpec::new(Protocol::Udp, 53, 53, "dns"),
+        ];
+        assert_eq!(
+            describe_port_rules(&rules, "none"),
+            "TCP 22 (home), 443  ·  UDP 53 (dns)"
+        );
+        assert_eq!(describe_port_rules(&[], "none"), "none");
     }
 
     #[test]

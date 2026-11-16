@@ -924,17 +924,65 @@ texts! {
         ja: "空欄の場合はアカウントのリージョンを使用します。",
         ko: "비워 두면 계정 리전을 사용합니다."
     },
-    Ports => {
-        en: "Ports",
+    Rules => {
+        en: "Rules",
+        zh: "规则",
+        ja: "ルール",
+        ko: "규칙"
+    },
+    PortsHint => {
+        en: "One port or range per row. An optional keyword finds an existing rule by its description and updates its IP in place.",
+        zh: "每行一个端口或范围。备注关键字用于定位已有规则，同步时就地更新它的 IP。",
+        ja: "1 行につき 1 つのポートまたは範囲。キーワードを入れると、説明文で既存ルールを特定し、IP を直接更新します。",
+        ko: "행마다 포트 또는 범위 하나. 설명 키워드를 입력하면 기존 규칙을 찾아 IP를 직접 갱신합니다."
+    },
+    RulePort => {
+        en: "Port",
         zh: "端口",
         ja: "ポート",
         ko: "포트"
     },
-    PortsHint => {
-        en: "tcp:22,80,443; udp:53 — ranges use 8000-8010 or 8000/8010.",
-        zh: "tcp:22,80,443; udp:53 — 范围可写作 8000-8010 或 8000/8010。",
-        ja: "tcp:22,80,443; udp:53 — 範囲は 8000-8010 または 8000/8010 と記述します。",
-        ko: "tcp:22,80,443; udp:53 — 범위는 8000-8010 또는 8000/8010으로 작성합니다."
+    RuleProtocol => {
+        en: "Protocol",
+        zh: "协议",
+        ja: "プロトコル",
+        ko: "프로토콜"
+    },
+    RuleKeyword => {
+        en: "Description keyword",
+        zh: "备注关键字",
+        ja: "説明のキーワード",
+        ko: "설명 키워드"
+    },
+    RuleKeywordPlaceholder => {
+        en: "e.g. home",
+        zh: "例如 home",
+        ja: "例: home",
+        ko: "예: home"
+    },
+    RuleKeywordHint => {
+        en: "Optional. Only rules whose description contains this keyword are updated.",
+        zh: "可选。只更新备注中包含该关键字的规则。",
+        ja: "任意。説明にこのキーワードを含むルールだけを更新します。",
+        ko: "선택 사항. 설명에 이 키워드가 포함된 규칙만 갱신합니다."
+    },
+    AddRule => {
+        en: "Add rule",
+        zh: "添加规则",
+        ja: "ルールを追加",
+        ko: "규칙 추가"
+    },
+    RemoveRule => {
+        en: "Remove rule",
+        zh: "删除规则",
+        ja: "ルールを削除",
+        ko: "규칙 삭제"
+    },
+    ErrDuplicateRule => {
+        en: "`{port}` is configured twice with the same keyword.",
+        zh: "端口 `{port}` 出现了重复配置（协议、端口、关键字相同）。",
+        ja: "ポート `{port}` が同じキーワードで重複しています。",
+        ko: "포트 `{port}`가 같은 키워드로 중복 설정되었습니다."
     },
     ErrTargetNameRequired => {
         en: "Target name is required.",
@@ -943,10 +991,16 @@ texts! {
         ko: "대상 이름은 필수입니다."
     },
     ErrPortListEmpty => {
-        en: "Enter at least one port, for example `22,80,443`.",
-        zh: "请至少输入一个端口，例如 `22,80,443`。",
-        ja: "ポートを 1 つ以上入力してください（例: `22,80,443`）。",
-        ko: "포트를 하나 이상 입력하세요(예: `22,80,443`)."
+        en: "Add at least one rule.",
+        zh: "请至少添加一条规则。",
+        ja: "ルールを 1 つ以上追加してください。",
+        ko: "규칙을 하나 이상 추가하세요."
+    },
+    ErrPortRequired => {
+        en: "Enter a port for every rule.",
+        zh: "每条规则都要填写端口。",
+        ja: "すべてのルールにポートを入力してください。",
+        ko: "모든 규칙에 포트를 입력하세요."
     },
     ErrPortInvalid => {
         en: "`{port}` is not a valid port.",
@@ -1300,11 +1354,47 @@ texts! {
         ja: "{target}: {protocol} {port} を {cidr} から許可しました",
         ko: "{target}: {protocol} {port}을(를) {cidr}에서 허용했습니다"
     },
+    WUpdated => {
+        en: "{target}: updated {protocol} {port} from {from} to {to}",
+        zh: "{target}：已更新 {protocol} {port} 的源 IP，{from} → {to}",
+        ja: "{target}: {protocol} {port} の送信元 IP を {from} → {to} に更新しました",
+        ko: "{target}: {protocol} {port}의 원본 IP를 {from} → {to}로 갱신했습니다"
+    },
+    WWouldUpdate => {
+        en: "{target}: would update {protocol} {port} ({description}) from {from} to {to}",
+        zh: "{target}：将把 {protocol} {port}（{description}）的源 IP 从 {from} 改为 {to}",
+        ja: "{target}: {protocol} {port}（{description}）の送信元 IP を {from} から {to} に変更します",
+        ko: "{target}: {protocol} {port}({description})의 원본 IP를 {from}에서 {to}로 변경 예정"
+    },
+    WUpdateFailed => {
+        en: "{target}: update {protocol} {port} failed (attempt {attempt}/{attempts}): {err}",
+        zh: "{target}：更新 {protocol} {port} 失败（第 {attempt}/{attempts} 次尝试）：{err}",
+        ja: "{target}: {protocol} {port} の更新に失敗（試行 {attempt}/{attempts}）: {err}",
+        ko: "{target}: {protocol} {port} 갱신 실패(시도 {attempt}/{attempts}): {err}"
+    },
+    WUpdateContext => {
+        en: "update the source address of {protocol} {port}",
+        zh: "更新 {protocol} {port} 的源 IP",
+        ja: "{protocol} {port} の送信元 IP を更新",
+        ko: "{protocol} {port}의 원본 IP 갱신"
+    },
+    WAmbiguousRule => {
+        en: "{target} skipped: port {port} keyword \"{keyword}\" matches {count} rules — make the keyword more specific",
+        zh: "{target} 已跳过：端口 {port} 的关键字「{keyword}」命中了 {count} 条规则，请把关键字写得更精确",
+        ja: "{target} をスキップ: ポート {port} のキーワード「{keyword}」が {count} 件のルールに一致しました。キーワードをより具体的にしてください",
+        ko: "{target} 건너뜀: 포트 {port} 키워드 \"{keyword}\"가 규칙 {count}개와 일치합니다. 키워드를 더 구체적으로 지정하세요"
+    },
+    WSharedRule => {
+        en: "{target} skipped: port {port} keyword \"{keyword}\" points at a rule another configured row already uses",
+        zh: "{target} 已跳过：端口 {port} 的关键字「{keyword}」命中的规则已被另一条配置占用",
+        ja: "{target} をスキップ: ポート {port} のキーワード「{keyword}」が指すルールは別の設定が既に使用しています",
+        ko: "{target} 건너뜀: 포트 {port} 키워드 \"{keyword}\"가 가리키는 규칙을 다른 설정이 이미 사용 중입니다"
+    },
     WInSync => {
-        en: "in sync — {active} managed rule(s) active, {added} added",
-        zh: "已同步 — {active} 条受管规则生效，新增 {added} 条",
-        ja: "同期済み — 管理ルール {active} 件が有効、{added} 件追加",
-        ko: "동기화됨 — 관리 규칙 {active}개 활성, {added}개 추가"
+        en: "in sync — {active} managed rule(s) active, {added} added, {updated} updated",
+        zh: "已同步 — {active} 条受管规则生效，新增 {added} 条，更新 {updated} 条",
+        ja: "同期済み — 管理ルール {active} 件が有効、{added} 件追加、{updated} 件更新",
+        ko: "동기화됨 — 관리 규칙 {active}개 활성, {added}개 추가, {updated}개 갱신"
     },
     WOutOfSync => {
         en: "rules still out of sync after applying: {summary}",
@@ -1343,10 +1433,10 @@ texts! {
         ko: "계정 `{name}` 테스트 실패: {message}"
     },
     PlanSummary => {
-        en: "{add} to add, {remove} to remove, {keep} unchanged",
-        zh: "新增 {add}，移除 {remove}，保持不变 {keep}",
-        ja: "追加 {add}、削除 {remove}、変更なし {keep}",
-        ko: "추가 {add}, 제거 {remove}, 유지 {keep}"
+        en: "{add} to add, {update} to update, {remove} to remove, {keep} unchanged",
+        zh: "新增 {add}，更新 {update}，移除 {remove}，保持不变 {keep}",
+        ja: "追加 {add}、更新 {update}、削除 {remove}、変更なし {keep}",
+        ko: "추가 {add}, 갱신 {update}, 제거 {remove}, 유지 {keep}"
     },
 }
 

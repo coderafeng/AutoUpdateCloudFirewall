@@ -11,7 +11,7 @@ use anyhow::Result;
 use reqwest::Client;
 
 use crate::model::ProviderKind;
-use crate::planner::{DesiredRule, RemoteRule};
+use crate::planner::{DesiredRule, RemoteRule, RuleUpdate};
 
 /// Access-key credential loaded from the OS credential store.
 #[derive(Debug, Clone)]
@@ -88,6 +88,25 @@ impl ApiClient {
         match self {
             ApiClient::Aliyun(client) => client.revoke(region, group_id, rule).await,
             ApiClient::Tencent(client) => client.revoke(region, group_id, version, rule).await,
+        }
+    }
+
+    /// Move an existing rule to the source address of `update.desired`.
+    ///
+    /// Aliyun modifies the rule in place; Tencent Cloud has no per-rule update
+    /// call, so the rule is revoked and re-created with the same description.
+    pub async fn update_cidr(
+        &self,
+        region: &str,
+        group_id: &str,
+        version: Option<&str>,
+        update: &RuleUpdate,
+    ) -> Result<()> {
+        match self {
+            ApiClient::Aliyun(client) => client.modify_cidr(region, group_id, update).await,
+            ApiClient::Tencent(client) => {
+                client.replace_cidr(region, group_id, version, update).await
+            }
         }
     }
 }

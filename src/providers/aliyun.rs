@@ -10,7 +10,7 @@ use serde_json::Value;
 use sha1::Sha1;
 
 use super::{Credentials, Snapshot};
-use crate::planner::{DesiredRule, RemoteRule};
+use crate::planner::{DesiredRule, RemoteRule, RuleUpdate};
 
 const ENDPOINT: &str = "https://ecs.aliyuncs.com/";
 const API_VERSION: &str = "2014-05-26";
@@ -157,6 +157,10 @@ impl Aliyun {
                         .unwrap_or_default()
                         .to_string(),
                     policy_index: None,
+                    rule_id: item
+                        .get("SecurityGroupRuleId")
+                        .and_then(Value::as_str)
+                        .map(str::to_string),
                 })
             })
             .collect();
@@ -199,6 +203,32 @@ impl Aliyun {
                 ("IpProtocol", rule.protocol.to_ascii_lowercase()),
                 ("PortRange", rule.port.clone()),
                 ("SourceCidrIp", rule.cidr.clone()),
+            ],
+        )
+        .await
+        .map(|_| ())
+    }
+
+    /// Change the source address of one rule in place, keeping its description,
+    /// priority and policy untouched.
+    pub async fn modify_cidr(
+        &self,
+        region: &str,
+        group_id: &str,
+        update: &RuleUpdate,
+    ) -> Result<()> {
+        let rule_id = update
+            .remote
+            .rule_id
+            .as_deref()
+            .context("Aliyun did not return a SecurityGroupRuleId for this rule")?;
+        self.call(
+            "ModifySecurityGroupRule",
+            region,
+            vec![
+                ("SecurityGroupId", group_id.to_string()),
+                ("SecurityGroupRuleId", rule_id.to_string()),
+                ("SourceCidrIp", update.desired.cidr.clone()),
             ],
         )
         .await

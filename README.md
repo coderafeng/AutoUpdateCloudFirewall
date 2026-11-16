@@ -85,8 +85,8 @@ cargo test
    Manager under the service `AutoUpdateCloudFirewall`; it is never written to
    `config.json`.
 2. Add a **Security group** target to the account: a name, the security-group id,
-   an optional region override, and the ports to allow
-   (`tcp:22,80,443; udp:53`, ranges as `8000-8010`).
+   an optional region override, and one row per ingress rule (protocol, port or
+   range such as `8000-8010`, and an optional description keyword).
 3. Leave the app in the tray. It checks the public IP every
    `check_interval_secs` (300 by default, minimum 30) and syncs when the address
    changes. Use **Sync now** to force a run, **Detect IP** to refresh the address
@@ -101,12 +101,22 @@ cargo test
 For each enabled target:
 
 1. Read the current ingress rules from the cloud API.
-2. Build the desired rule set from the target's ports and the detected public IP.
-   Each desired rule carries the description `AutoFirewall <ip> <protocol> <port>`.
-3. Diff the two sets using the managed-rule prefix. The diff deletes stale or
-   changed managed rules, one at a time (Tencent Cloud rule indices stay valid),
-   then creates the missing ones.
-4. Re-read the group and verify that no managed rules remain in the plan.
+2. Build the desired rule set from the target's rules and the detected public IP.
+   Every desired rule carries a description; rows with a keyword also record it.
+3. When a row has a **description keyword**, the rule whose protocol and port
+   match and whose description contains the keyword is adopted: its source IP is
+   replaced in place (Aliyun `ModifySecurityGroupRule`) with its description and
+   priority untouched. On Tencent Cloud, which has no per-rule update call, the
+   rule is revoked and re-created with the same description. If the keyword
+   matches several rules, the whole target is skipped with an error instead of
+   guessing.
+4. Rows without a keyword keep the prefix-based ownership: stale rules whose
+   description starts with `AutoFirewall` are deleted one at a time, then the
+   missing rules are created.
+5. Re-read the group and verify that no rule remains in the plan.
+
+Rules you created yourself are never deleted, even after the matching row is
+removed from the configuration.
 
 Write calls retry up to three times with a short backoff; errors are logged and
 reported in the UI without stopping the background loop.

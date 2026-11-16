@@ -12,7 +12,7 @@ use gpui_kit::*;
 
 use super::{AppView, NoticeLevel, field, provider_color};
 use crate::i18n::{self, Text};
-use crate::model::{Account, PortRange, ProviderKind, Target, format_port_rules, parse_port_rules};
+use crate::model::{Account, Protocol, ProviderKind, RuleSpec, Target};
 use crate::{storage, worker::Command};
 
 impl AppView {
@@ -243,31 +243,36 @@ impl AppView {
         self.editing_target = target_id.clone();
         self.target_account = Some(account_id.clone());
 
-        let (name, group, region, ports) = match &editing {
+        let (name, group, region, rules) = match &editing {
             Some(target) => (
                 target.name.clone(),
                 target.security_group_id.clone(),
                 target.region.clone(),
-                format_port_rules(&target.rules),
+                target.rules.clone(),
             ),
             None => (
                 String::new(),
                 String::new(),
                 String::new(),
-                "tcp:22,80,443".to_string(),
+                vec![
+                    RuleSpec::new(Protocol::Tcp, 22, 22, ""),
+                    RuleSpec::new(Protocol::Tcp, 80, 80, ""),
+                    RuleSpec::new(Protocol::Tcp, 443, 443, ""),
+                ],
             ),
         };
 
         self.set_input(&self.target_name.clone(), name, window, cx);
         self.set_input(&self.target_group.clone(), group, window, cx);
         self.set_input(&self.target_region.clone(), region, window, cx);
-        self.set_input(&self.target_ports.clone(), ports, window, cx);
+        self.rules_editor
+            .update(cx, |editor, cx| editor.load(&rules, window, cx));
 
         let entity = cx.entity();
         let name_input = self.target_name.clone();
         let group_input = self.target_group.clone();
         let region_input = self.target_region.clone();
-        let ports_input = self.target_ports.clone();
+        let rules_editor = self.rules_editor.clone();
         let is_edit = target_id.is_some();
         let account_label = format!(
             "{} · {} · {}",
@@ -324,8 +329,8 @@ impl AppView {
                             cx,
                         ))
                         .child(field(
-                            i18n::t(language, Text::Ports),
-                            Input::new(&ports_input),
+                            i18n::t(language, Text::Rules),
+                            rules_editor.clone(),
                             Some(i18n::t(language, Text::PortsHint)),
                             cx,
                         )),
@@ -359,11 +364,9 @@ impl AppView {
     }
 
     fn submit_target(&mut self, cx: &mut Context<Self>) -> Result<String, String> {
-        let language = self.language;
         let name = self.target_name.read(cx).value().trim().to_string();
         let group = self.target_group.read(cx).value().trim().to_string();
         let region = self.target_region.read(cx).value().trim().to_string();
-        let ports_text = self.target_ports.read(cx).value().to_string();
 
         if name.is_empty() {
             return Err(self.t(Text::ErrTargetNameRequired).to_string());
@@ -371,8 +374,16 @@ impl AppView {
         if group.is_empty() {
             return Err(self.t(Text::ErrGroupRequired).to_string());
         }
-        let rules: Vec<PortRange> =
-            parse_port_rules(&ports_text).map_err(|err| err.message(language))?;
+        let rules: Vec<RuleSpec> = match self.rules_editor.read(cx).collect(cx) {
+            Ok(rules) => rules,
+            Err(message) => {
+                self.rules_editor
+                    .update(cx, |editor, cx| editor.set_error(Some(message.clone()), cx));
+                return Err(message);
+            }
+        };
+        self.rules_editor
+            .update(cx, |editor, cx| editor.set_error(None, cx));
 
         let account_id = self
             .target_account

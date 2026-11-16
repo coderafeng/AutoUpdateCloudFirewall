@@ -28,9 +28,9 @@
       "region": "cn-hangzhou",
       "security_group_id": "sg-bp1example",
       "rules": [
-        { "protocol": "tcp", "start": 22, "end": 22 },
-        { "protocol": "tcp", "start": 80, "end": 80 },
-        { "protocol": "tcp", "start": 443, "end": 443 }
+        { "protocol": "tcp", "start": 22, "end": 22, "keyword": "home" },
+        { "protocol": "tcp", "start": 80, "end": 80, "keyword": "" },
+        { "protocol": "tcp", "start": 443, "end": 443, "keyword": "" }
       ],
       "enabled": true
     }

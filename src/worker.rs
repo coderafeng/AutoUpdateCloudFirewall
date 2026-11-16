@@ -186,11 +186,17 @@ impl Worker {
 
     fn plan_summary(&self, plan: &planner::SyncPlan) -> String {
         let add = plan.create.len().to_string();
+        let update = plan.update.len().to_string();
         let remove = plan.delete.len().to_string();
         let keep = plan.keep.to_string();
         self.tr(
             Text::PlanSummary,
-            &[("add", &add), ("remove", &remove), ("keep", &keep)],
+            &[
+                ("add", &add),
+                ("update", &update),
+                ("remove", &remove),
+                ("keep", &keep),
+            ],
         )
     }
 
@@ -402,6 +408,33 @@ impl Worker {
         let desired = planner::desired_rules(&target.rules, ip, prefix);
         let initial = planner::plan(&snapshot.rules, &desired, prefix);
         let label = target_label(target);
+
+        // A keyword that cannot name exactly one rule would modify something
+        // unexpected, so the whole target is skipped before any mutation.
+        if let Some(conflict) = initial.ambiguous.first() {
+            let port = conflict.desired.port_text();
+            let keyword = conflict.desired.keyword.trim();
+            let count = conflict.count.to_string();
+            let message = if conflict.shared {
+                self.tr(
+                    Text::WSharedRule,
+                    &[("target", &label), ("port", &port), ("keyword", keyword)],
+                )
+            } else {
+                self.tr(
+                    Text::WAmbiguousRule,
+                    &[
+                        ("target", &label),
+                        ("port", &port),
+                        ("keyword", keyword),
+                        ("count", &count),
+                    ],
+                )
+            };
+            self.log(Level::Error, message.clone());
+            return Err(anyhow::anyhow!(message));
+        }
+
         self.log(
             Level::Info,
             format!("{label}: {}", self.plan_summary(&initial)),
@@ -412,6 +445,23 @@ impl Worker {
         }
 
         if dry_run {
+            for rule in &initial.update {
+                let port = rule.desired.port_text();
+                self.log(
+                    Level::Info,
+                    self.tr(
+                        Text::WWouldUpdate,
+                        &[
+                            ("target", &label),
+                            ("protocol", rule.desired.protocol.label()),
+                            ("port", &port),
+                            ("description", &rule.remote.description),
+                            ("from", &rule.remote.cidr),
+                            ("to", &rule.desired.cidr),
+                        ],
+                    ),
+                );
+            }
             for rule in &initial.delete {
                 self.log(
                     Level::Warn,
@@ -446,6 +496,80 @@ impl Worker {
                 Text::WDryRunSummary,
                 &[("summary", &self.plan_summary(&initial))],
             ));
+        }
+
+        // Apply in-place updates first: adopted rules keep their description
+        // and priority, only the source address changes.
+        let mut updated = 0usize;
+        for entry in &initial.update {
+            let port = entry.desired.port_text();
+            let tencent = matches!(client.provider(), crate::model::ProviderKind::Tencent);
+            let attempts = if tencent { 1 } else { RETRY_ATTEMPTS };
+            let mut attempt = 0usize;
+            loop {
+                attempt += 1;
+                // Tencent Cloud requires a fresh policy version for every call.
+                let version = if tencent {
+                    client
+                        .list_ingress(region, &target.security_group_id)
+                        .await
+                        .with_context(|| self.t(Text::WRefreshVersion))?
+                        .version
+                } else {
+                    snapshot.version.clone()
+                };
+                match client
+                    .update_cidr(region, &target.security_group_id, version.as_deref(), entry)
+                    .await
+                {
+                    Ok(()) => break,
+                    Err(err) if attempt < attempts => {
+                        let attempt_text = attempt.to_string();
+                        self.log(
+                            Level::Warn,
+                            self.tr(
+                                Text::WUpdateFailed,
+                                &[
+                                    ("target", &label),
+                                    ("protocol", entry.desired.protocol.label()),
+                                    ("port", &port),
+                                    ("attempt", &attempt_text),
+                                    ("attempts", &attempts.to_string()),
+                                    ("err", &format!("{err:#}")),
+                                ],
+                            ),
+                        );
+                        tokio::time::sleep(Duration::from_millis(800 * attempt as u64)).await;
+                    }
+                    Err(err) => {
+                        return Err(err).with_context(|| {
+                            self.tr(
+                                Text::WUpdateContext,
+                                &[
+                                    ("protocol", entry.desired.protocol.label()),
+                                    ("port", &port),
+                                ],
+                            )
+                        });
+                    }
+                }
+            }
+
+            updated += 1;
+            self.log(
+                Level::Success,
+                self.tr(
+                    Text::WUpdated,
+                    &[
+                        ("target", &label),
+                        ("protocol", entry.desired.protocol.label()),
+                        ("port", &port),
+                        ("from", &entry.remote.cidr),
+                        ("to", &entry.desired.cidr),
+                    ],
+                ),
+            );
+            tokio::time::sleep(API_SPACING).await;
         }
 
         // Delete managed rules that no longer match, one at a time so that
@@ -610,12 +734,16 @@ impl Worker {
         let remaining = planner::plan(&verify.rules, &desired, prefix);
 
         if remaining.is_empty() {
-            let active = planner::managed_rules(&verify.rules, prefix);
-            let active_text = active.len().to_string();
+            let active_text = remaining.keep.to_string();
             let created_text = created.to_string();
+            let updated_text = updated.to_string();
             Ok(self.tr(
                 Text::WInSync,
-                &[("active", &active_text), ("added", &created_text)],
+                &[
+                    ("active", &active_text),
+                    ("added", &created_text),
+                    ("updated", &updated_text),
+                ],
             ))
         } else {
             Err(anyhow::anyhow!(self.tr(

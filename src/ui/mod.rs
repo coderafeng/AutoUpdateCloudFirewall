@@ -1,6 +1,7 @@
 //! Application views: sidebar shell, overview, accounts, targets, logs, settings.
 
 mod dialogs;
+mod rules_editor;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -134,7 +135,7 @@ pub struct AppView {
     target_name: Entity<InputState>,
     target_group: Entity<InputState>,
     target_region: Entity<InputState>,
-    target_ports: Entity<InputState>,
+    rules_editor: Entity<rules_editor::RulesEditor>,
     pub target_account: Option<String>,
     pub editing_target: Option<String>,
 
@@ -168,8 +169,8 @@ impl AppView {
             InputState::new(window, cx)
                 .placeholder(i18n::t(language, Text::PlaceholderRegionInherit))
         });
-        let target_ports =
-            cx.new(|cx| InputState::new(window, cx).placeholder("tcp:22,80,443; udp:53"));
+        let rules_editor =
+            cx.new(|cx| rules_editor::RulesEditor::with_defaults(language, window, cx));
 
         let settings_interval = cx.new(|cx| {
             InputState::new(window, cx)
@@ -239,7 +240,7 @@ impl AppView {
             target_name,
             target_group,
             target_region,
-            target_ports,
+            rules_editor,
             target_account: None,
             editing_target: None,
             settings_interval,

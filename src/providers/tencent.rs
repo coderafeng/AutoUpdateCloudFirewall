@@ -7,7 +7,7 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
 use super::{Credentials, Snapshot};
-use crate::planner::{DesiredRule, RemoteRule};
+use crate::planner::{DesiredRule, RemoteRule, RuleUpdate};
 
 const ENDPOINT: &str = "https://ecs.tencentcloudapi.com/";
 const HOST: &str = "ecs.tencentcloudapi.com";
@@ -174,6 +174,7 @@ impl Tencent {
                                 .unwrap_or_default()
                                 .to_string(),
                             policy_index: item.get("PolicyIndex").and_then(Value::as_u64),
+                            rule_id: None,
                         })
                     })
                     .collect()
@@ -239,6 +240,40 @@ impl Tencent {
         )
         .await
         .map(|_| ())
+    }
+
+    /// Tencent Cloud cannot modify a policy in place: revoke it and create it
+    /// again with the same description but the new source address. The policy
+    /// version changes after each call, so it is re-read before re-creating.
+    pub async fn replace_cidr(
+        &self,
+        region: &str,
+        group_id: &str,
+        version: Option<&str>,
+        update: &RuleUpdate,
+    ) -> Result<()> {
+        self.revoke(region, group_id, version, &update.remote)
+            .await?;
+
+        let mut rule = update.desired.clone();
+        rule.description = update.remote.description.clone();
+
+        let mut last_error = None;
+        for attempt in 0..3u64 {
+            if attempt > 0 {
+                tokio::time::sleep(std::time::Duration::from_millis(400 * attempt)).await;
+            }
+            let fresh = self.list_ingress(region, group_id).await?;
+            match self
+                .authorize(region, group_id, fresh.version.as_deref(), &rule)
+                .await
+            {
+                Ok(()) => return Ok(()),
+                Err(err) => last_error = Some(err),
+            }
+        }
+
+        Err(last_error.unwrap_or_else(|| anyhow::anyhow!("Tencent Cloud policy update failed")))
     }
 }
 
