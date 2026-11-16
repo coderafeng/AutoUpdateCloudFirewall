@@ -2,7 +2,8 @@
 """Regenerate the packaged icon set from the SVG sources in ``assets/``.
 
 The build itself never runs this script: the PNGs and ``app.ico`` it produces are
-committed. Re-run it after editing ``assets/logo.svg`` or ``assets/logo-mono.svg``.
+committed. Re-run it after editing either ``assets/logo.svg``,
+``assets/logo-compact.svg``, ``assets/logo-mono.svg`` or ``assets/logo-ui.svg``.
 
     python tools/generate-icons.py
 
@@ -24,6 +25,9 @@ ASSETS = ROOT / "assets"
 BRAND_SIZES = (16, 20, 24, 32, 40, 48, 64, 128, 256, 512)
 MONO_SIZES = (24, 32, 48, 64, 256)
 ICO_SIZES = (16, 20, 24, 32, 48, 64, 128, 256)
+
+# In-app badge (32 px sidebar slot), rendered from the bolder UI artwork.
+UI_SIZES = (32, 64, 128)
 
 # Below this size the topology mark turns to mush, so the compact artwork
 # (cloud only) is used instead.
@@ -75,7 +79,8 @@ def main() -> int:
     brand = ASSETS / "logo.svg"
     compact = ASSETS / "logo-compact.svg"
     mono = ASSETS / "logo-mono.svg"
-    for svg in (brand, compact, mono):
+    ui = ASSETS / "logo-ui.svg"
+    for svg in (brand, compact, mono, ui):
         if not svg.is_file():
             raise SystemExit(f"missing source artwork: {svg}")
 
@@ -87,6 +92,11 @@ def main() -> int:
     for size in MONO_SIZES:
         target = ASSETS / f"mono-{size}.png"
         render(mono, size, target)
+        print(f"wrote {target.relative_to(ROOT)}")
+
+    for size in UI_SIZES:
+        target = ASSETS / f"icon-ui-{size}.png"
+        render(ui, size, target)
         print(f"wrote {target.relative_to(ROOT)}")
 
     # The ICO wants a stable, ordered frame list; 256 must be last.

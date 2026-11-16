@@ -104,7 +104,7 @@ cargo test
 | `src/platform.rs` | ネイティブウィンドウの表示/非表示、Windows 自動開始。 |
 | `src/tray.rs` | 通知領域のアイコンとメニュー。 |
 | `src/ui/` | サイドバーシェル、各ページ、アカウント/対象のダイアログ。 |
-| `assets/` | アイコン原画（`logo.svg`、`logo-compact.svg`、`logo-mono.svg`）と生成済みの PNG/ICO。 |
+| `assets/` | アイコン原画（`logo.svg`、`logo-compact.svg`、`logo-mono.svg`、`logo-ui.svg`）と生成済みの PNG/ICO。 |
 | `tools/generate-icons.py` | SVG 原画からアイコン一式を再生成します。 |
 | `build.rs` | 実行ファイルのアイコンとバージョン情報を埋め込みます。 |
 

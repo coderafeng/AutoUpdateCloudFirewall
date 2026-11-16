@@ -127,7 +127,7 @@ cargo test
 | `src/platform.rs` | 네이티브 창 표시/숨기기, Windows 자동 실행. |
 | `src/tray.rs` | 알림 영역 아이콘과 메뉴. |
 | `src/ui/` | 사이드바 셸, 페이지, 계정/대상 대화상자. |
-| `assets/` | 아이콘 원본(`logo.svg`, `logo-compact.svg`, `logo-mono.svg`)과 생성된 PNG/ICO. |
+| `assets/` | 아이콘 원본(`logo.svg`, `logo-compact.svg`, `logo-mono.svg`, `logo-ui.svg`)과 생성된 PNG/ICO. |
 | `tools/generate-icons.py` | SVG 원본에서 아이콘 세트를 다시 생성합니다. |
 | `build.rs` | 실행 파일 아이콘과 버전 리소스를 포함합니다. |
 

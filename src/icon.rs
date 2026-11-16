@@ -1,8 +1,8 @@
 //! Application artwork.
 //!
-//! The PNGs and the `.ico` are generated from `assets/logo.svg` and
-//! `assets/logo-mono.svg` by `tools/generate-icons.py`; the files are committed
-//! so an ordinary build needs no rasteriser.
+//! The PNGs and the `.ico` are generated from `assets/logo*.svg` by
+//! `tools/generate-icons.py`; the files are committed so an ordinary build
+//! needs no rasteriser.
 
 use std::borrow::Cow;
 use std::sync::Arc;
@@ -15,8 +15,8 @@ pub const TRAY: &[u8] = include_bytes!("../assets/icon-32.png");
 /// 64 px brand mark: window and taskbar icon.
 pub const WINDOW: &[u8] = include_bytes!("../assets/icon-64.png");
 
-/// 64 px brand mark exposed to the UI through the asset source.
-pub const LOGO: &[u8] = include_bytes!("../assets/icon-64.png");
+/// 128 px in-app badge: the sidebar logo, kept oversized for HiDPI displays.
+pub const LOGO: &[u8] = include_bytes!("../assets/icon-ui-128.png");
 
 /// Asset path the UI uses for the sidebar logo.
 pub const LOGO_PATH: &str = "logo/icon.png";

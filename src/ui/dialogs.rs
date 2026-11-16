@@ -3,7 +3,7 @@
 use gpui_kit::component::{
     ActiveTheme, WindowExt as _,
     button::{Button, ButtonVariants as _},
-    dialog::DialogFooter,
+    dialog::{DialogAction, DialogClose, DialogFooter},
     h_flex,
     input::Input,
     v_flex,
@@ -134,15 +134,15 @@ impl AppView {
                 .footer(
                     DialogFooter::new()
                         .gap_2()
+                        .child(DialogClose::new().trigger(|button| {
+                            button.outline().label(i18n::t(language, Text::Cancel))
+                        }))
                         .child(
-                            Button::new("account-cancel")
-                                .outline()
-                                .label(i18n::t(language, Text::Cancel)),
-                        )
-                        .child(
-                            Button::new("account-save")
-                                .primary()
-                                .label(ok_text.to_string()),
+                            DialogAction::new().child(
+                                Button::new("account-save")
+                                    .primary()
+                                    .label(ok_text.to_string()),
+                            ),
                         ),
                 )
                 .on_ok(move |_, window, cx| {
@@ -333,15 +333,15 @@ impl AppView {
                 .footer(
                     DialogFooter::new()
                         .gap_2()
-                        .child(
-                            Button::new("target-cancel")
-                                .outline()
-                                .label(i18n::t(language, Text::Cancel)),
-                        )
-                        .child(Button::new("target-save").primary().label(i18n::t(
-                            language,
-                            if is_edit { Text::Save } else { Text::AddTarget },
-                        ))),
+                        .child(DialogClose::new().trigger(|button| {
+                            button.outline().label(i18n::t(language, Text::Cancel))
+                        }))
+                        .child(DialogAction::new().child(
+                            Button::new("target-save").primary().label(i18n::t(
+                                language,
+                                if is_edit { Text::Save } else { Text::AddTarget },
+                            )),
+                        )),
                 )
                 .on_ok(move |_, window, cx| {
                     match entity.update(cx, |this, cx| this.submit_target(cx)) {
@@ -454,15 +454,15 @@ impl AppView {
                 .footer(
                     DialogFooter::new()
                         .gap_2()
+                        .child(DialogClose::new().trigger(|button| {
+                            button.outline().label(i18n::t(language, Text::Cancel))
+                        }))
                         .child(
-                            Button::new("delete-cancel")
-                                .outline()
-                                .label(i18n::t(language, Text::Cancel)),
-                        )
-                        .child(
-                            Button::new("delete-account-ok")
-                                .danger()
-                                .label(i18n::t(language, Text::Delete)),
+                            DialogAction::new().child(
+                                Button::new("delete-account-ok")
+                                    .danger()
+                                    .label(i18n::t(language, Text::Delete)),
+                            ),
                         ),
                 )
                 .on_ok({
@@ -504,15 +504,15 @@ impl AppView {
                 .footer(
                     DialogFooter::new()
                         .gap_2()
+                        .child(DialogClose::new().trigger(|button| {
+                            button.outline().label(i18n::t(language, Text::Cancel))
+                        }))
                         .child(
-                            Button::new("delete-target-cancel")
-                                .outline()
-                                .label(i18n::t(language, Text::Cancel)),
-                        )
-                        .child(
-                            Button::new("delete-target-ok")
-                                .danger()
-                                .label(i18n::t(language, Text::Delete)),
+                            DialogAction::new().child(
+                                Button::new("delete-target-ok")
+                                    .danger()
+                                    .label(i18n::t(language, Text::Delete)),
+                            ),
                         ),
                 )
                 .on_ok({

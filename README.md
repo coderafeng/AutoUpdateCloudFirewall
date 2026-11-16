@@ -138,7 +138,7 @@ with defaults on the next start.
 | `src/platform.rs` | Show/hide the native window, Windows auto-start. |
 | `src/tray.rs` | Notification-area icon and menu. |
 | `src/ui/` | Sidebar shell, pages and account/target dialogs. |
-| `assets/` | Icon sources (`logo.svg`, `logo-compact.svg`, `logo-mono.svg`) and the generated PNG/ICO files. |
+| `assets/` | Icon sources (`logo.svg`, `logo-compact.svg`, `logo-mono.svg`, `logo-ui.svg`) and the generated PNG/ICO files. |
 | `tools/generate-icons.py` | Regenerates the icon set from the SVG sources. |
 | `build.rs` | Embeds the executable icon and version resources. |
 

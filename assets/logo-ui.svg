@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Auto Update Cloud Firewall (UI mark)">
+  <!-- Small-size variant for in-app use (32 px sidebar badge).
+       The cloud fills the tile, the topology is bolder and painted in the deep
+       brand blue instead of being knocked out, so both survive downscaling. -->
+  <defs>
+    <linearGradient id="brand" x1="296" y1="104" x2="736" y2="920" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5B95FF"/>
+      <stop offset="0.52" stop-color="#2E6CF0"/>
+      <stop offset="1" stop-color="#1B45C7"/>
+    </linearGradient>
+
+    <radialGradient id="gloss" cx="0.28" cy="0.12" r="0.85">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.26"/>
+      <stop offset="0.62" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <clipPath id="tile-clip">
+      <rect x="40" y="40" width="944" height="944" rx="230"/>
+    </clipPath>
+
+    <!-- Cloud silhouette on a 24x16 grid, scaled x34 and centred on the tile. -->
+    <path id="cloud"
+          d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+  </defs>
+
+  <rect x="40" y="40" width="944" height="944" rx="230" fill="url(#brand)"/>
+  <g clip-path="url(#tile-clip)">
+    <rect x="40" y="40" width="944" height="944" fill="url(#gloss)"/>
+  </g>
+  <rect x="40" y="40" width="944" height="944" rx="230" fill="none"
+        stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="8"/>
+
+  <g transform="translate(104 133) scale(34)">
+    <use href="#cloud" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Topology mark: one parent node branching to two children. -->
+  <g fill="#1740BE">
+    <rect x="427" y="350" width="170" height="170" rx="46"/>
+    <rect x="277" y="600" width="170" height="170" rx="46"/>
+    <rect x="577" y="600" width="170" height="170" rx="46"/>
+  </g>
+  <g fill="none" stroke="#1740BE" stroke-width="52" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M512 520V566"/>
+    <path d="M362 566H662"/>
+    <path d="M362 566V600"/>
+    <path d="M662 566V600"/>
+  </g>
+</svg>
