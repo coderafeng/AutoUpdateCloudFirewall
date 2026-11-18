@@ -1498,6 +1498,80 @@ texts! {
         ja: "追加 {add}、更新 {update}、削除 {remove}、変更なし {keep}",
         ko: "추가 {add}, 갱신 {update}, 제거 {remove}, 유지 {keep}"
     },
+
+    // ------------------------------------------------------ cron scheduling
+    CronSchedule => {
+        en: "Cron expression",
+        zh: "定时表达式（cron）",
+        ja: "cron 式",
+        ko: "cron 식"
+    },
+    CronScheduleHint => {
+        en: "Five fields: minute hour day month weekday. Leave empty to use the interval above. Examples: `0 */5 * * *` every 5 minutes, `0 3 * * *` daily at 03:00, `30 2 * * 1-5` weekdays at 02:30. `@hourly`, `@daily`, `@weekly` and `@monthly` also work.",
+        zh: "五段式：分 时 日 月 周。留空则按上面的间隔执行。例如 `0 */5 * * *` 每 5 分钟、`0 3 * * *` 每天 03:00、`30 2 * * 1-5` 工作日 02:30。也支持 `@hourly`、`@daily`、`@weekly`、`@monthly`。",
+        ja: "5 フィールド形式（分 時 日 月 曜日）。空欄なら上の間隔で実行します。例: `0 */5 * * *` は 5 分ごと、`0 3 * * *` は毎日 03:00、`30 2 * * 1-5` は平日 02:30。`@hourly`・`@daily`・`@weekly`・`@monthly` も使えます。",
+        ko: "5개 필드(분 시 일 월 요일) 형식입니다. 비워 두면 위의 간격으로 실행합니다. 예: `0 */5 * * *` 5분마다, `0 3 * * *` 매일 03:00, `30 2 * * 1-5` 평일 02:30. `@hourly`, `@daily`, `@weekly`, `@monthly`도 됩니다."
+    },
+    CronInvalid => {
+        en: "Cron expression `{expr}` is invalid: {err}",
+        zh: "定时表达式 `{expr}` 无效：{err}",
+        ja: "cron 式 `{expr}` が正しくありません: {err}",
+        ko: "cron 식 `{expr}`이(가) 올바르지 않습니다: {err}"
+    },
+    TargetInterval => {
+        en: "Sync interval (seconds, optional)",
+        zh: "同步间隔（秒，可选）",
+        ja: "同期間隔（秒・任意）",
+        ko: "동기화 간격(초, 선택)"
+    },
+    TargetIntervalHint => {
+        en: "Leave empty to follow the global setting. Minimum 60 seconds.",
+        zh: "留空则跟随全局设置，最小 60 秒。",
+        ja: "空欄ならグローバル設定に従います。最小 60 秒。",
+        ko: "비워 두면 전역 설정을 따릅니다. 최소 60초."
+    },
+    TargetCron => {
+        en: "Cron expression (optional)",
+        zh: "定时表达式（可选）",
+        ja: "cron 式（任意）",
+        ko: "cron 식(선택)"
+    },
+    TargetCronHint => {
+        en: "Five fields: minute hour day month weekday, for example `0 */10 * * *`. Leave empty to follow the global setting; when both fields are filled the cron expression wins.",
+        zh: "五段式：分 时 日 月 周，例如 `0 */10 * * *`。留空则跟随全局设置；两者都填时以定时表达式为准。",
+        ja: "5 フィールド形式（分 時 日 月 曜日）。例: `0 */10 * * *`。空欄ならグローバル設定に従い、両方入力した場合は cron 式を優先します。",
+        ko: "5개 필드(분 시 일 월 요일) 형식입니다. 예: `0 */10 * * *`. 비워 두면 전역 설정을 따르고, 둘 다 입력하면 cron 식을 우선합니다."
+    },
+    TargetScheduleGlobal => {
+        en: "Global default: {schedule}",
+        zh: "全局默认：{schedule}",
+        ja: "グローバルの既定値: {schedule}",
+        ko: "전역 기본값: {schedule}"
+    },
+    ScheduleInterval => {
+        en: "every {secs}s",
+        zh: "每 {secs} 秒",
+        ja: "{secs} 秒ごと",
+        ko: "{secs}초마다"
+    },
+    ScheduleCron => {
+        en: "cron {cron}",
+        zh: "定时 {cron}",
+        ja: "cron {cron}",
+        ko: "cron {cron}"
+    },
+    ScheduleInherited => {
+        en: "{schedule} (global)",
+        zh: "{schedule}（全局）",
+        ja: "{schedule}（グローバル）",
+        ko: "{schedule}(전역)"
+    },
+    WStartedCron => {
+        en: "background worker started (schedule {cron})",
+        zh: "后台任务已启动（定时 {cron}）",
+        ja: "バックグラウンドワーカーを開始しました（cron {cron}）",
+        ko: "백그라운드 작업자를 시작했습니다(cron {cron})"
+    },
 }
 
 /// Look up a static string.

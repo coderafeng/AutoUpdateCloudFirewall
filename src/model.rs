@@ -437,6 +437,12 @@ pub struct Target {
     pub rules: Vec<RuleSpec>,
     #[serde(default = "default_true")]
     pub enabled: bool,
+    /// Sync interval for this target only; `0` means "use the global value".
+    #[serde(default)]
+    pub interval_secs: u64,
+    /// Cron expression for this target only; empty means "use the global one".
+    #[serde(default)]
+    pub schedule_cron: String,
 }
 
 impl Target {
@@ -449,6 +455,8 @@ impl Target {
             security_group_id: String::new(),
             rules: Vec::new(),
             enabled: true,
+            interval_secs: 0,
+            schedule_cron: String::new(),
         }
     }
 }
@@ -459,6 +467,9 @@ pub struct Settings {
     pub language: Language,
     #[serde(default = "default_interval")]
     pub check_interval_secs: u64,
+    /// Global cron expression; when set it takes precedence over the interval.
+    #[serde(default)]
+    pub schedule_cron: String,
     #[serde(default = "default_services")]
     pub ip_services: Vec<String>,
     #[serde(default)]
@@ -488,6 +499,7 @@ impl Default for Settings {
         Self {
             language: Language::from_system(),
             check_interval_secs: default_interval(),
+            schedule_cron: String::new(),
             ip_services: default_services(),
             dry_run: false,
             close_to_tray: true,

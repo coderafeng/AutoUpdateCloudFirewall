@@ -11,6 +11,7 @@ mod model;
 mod planner;
 mod platform;
 mod providers;
+mod schedule;
 mod storage;
 mod tray;
 mod ui;

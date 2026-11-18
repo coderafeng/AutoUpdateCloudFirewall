@@ -10,9 +10,10 @@ use gpui_kit::component::{
 };
 use gpui_kit::*;
 
-use super::{AppView, NoticeLevel, field, provider_color};
+use super::{AppView, NoticeLevel, field, provider_color, schedule_label};
 use crate::i18n::{self, Text};
-use crate::model::{Account, Protocol, ProviderKind, RuleSpec, Target};
+use crate::model::{Account, MIN_INTERVAL_SECS, Protocol, ProviderKind, RuleSpec, Target};
+use crate::schedule::{self, CronSchedule};
 use crate::{storage, worker::Command};
 
 impl AppView {
@@ -243,12 +244,18 @@ impl AppView {
         self.editing_target = target_id.clone();
         self.target_account = Some(account_id.clone());
 
-        let (name, group, region, rules) = match &editing {
+        let (name, group, region, rules, interval, cron) = match &editing {
             Some(target) => (
                 target.name.clone(),
                 target.security_group_id.clone(),
                 target.region.clone(),
                 target.rules.clone(),
+                if target.interval_secs > 0 {
+                    target.interval_secs.to_string()
+                } else {
+                    String::new()
+                },
+                target.schedule_cron.clone(),
             ),
             None => (
                 String::new(),
@@ -259,12 +266,16 @@ impl AppView {
                     RuleSpec::new(Protocol::Tcp, 80, 80, ""),
                     RuleSpec::new(Protocol::Tcp, 443, 443, ""),
                 ],
+                String::new(),
+                String::new(),
             ),
         };
 
         self.set_input(&self.target_name.clone(), name, window, cx);
         self.set_input(&self.target_group.clone(), group, window, cx);
         self.set_input(&self.target_region.clone(), region, window, cx);
+        self.set_input(&self.target_interval.clone(), interval, window, cx);
+        self.set_input(&self.target_cron.clone(), cron, window, cx);
         self.rules_editor
             .update(cx, |editor, cx| editor.load(&rules, window, cx));
 
@@ -272,8 +283,17 @@ impl AppView {
         let name_input = self.target_name.clone();
         let group_input = self.target_group.clone();
         let region_input = self.target_region.clone();
+        let interval_input = self.target_interval.clone();
+        let cron_input = self.target_cron.clone();
         let rules_editor = self.rules_editor.clone();
         let is_edit = target_id.is_some();
+        let global_schedule =
+            schedule_label(language, &schedule::global(&self.config.settings), false);
+        let global_hint = i18n::tr(
+            language,
+            Text::TargetScheduleGlobal,
+            &[("schedule", &global_schedule)],
+        );
         let account_label = format!(
             "{} · {} · {}",
             account.name,
@@ -329,6 +349,24 @@ impl AppView {
                             cx,
                         ))
                         .child(field(
+                            i18n::t(language, Text::TargetInterval),
+                            Input::new(&interval_input),
+                            Some(i18n::t(language, Text::TargetIntervalHint)),
+                            cx,
+                        ))
+                        .child(field(
+                            i18n::t(language, Text::TargetCron),
+                            Input::new(&cron_input),
+                            Some(i18n::t(language, Text::TargetCronHint)),
+                            cx,
+                        ))
+                        .child(
+                            div()
+                                .text_xs()
+                                .text_color(cx.theme().muted_foreground)
+                                .child(global_hint.clone()),
+                        )
+                        .child(field(
                             i18n::t(language, Text::Rules),
                             rules_editor.clone(),
                             Some(i18n::t(language, Text::PortsHint)),
@@ -367,12 +405,32 @@ impl AppView {
         let name = self.target_name.read(cx).value().trim().to_string();
         let group = self.target_group.read(cx).value().trim().to_string();
         let region = self.target_region.read(cx).value().trim().to_string();
+        let interval_text = self.target_interval.read(cx).value().trim().to_string();
+        let cron_text = self.target_cron.read(cx).value().trim().to_string();
 
         if name.is_empty() {
             return Err(self.t(Text::ErrTargetNameRequired).to_string());
         }
         if group.is_empty() {
             return Err(self.t(Text::ErrGroupRequired).to_string());
+        }
+
+        // Empty means "follow the global setting".
+        let interval_secs = if interval_text.is_empty() {
+            0
+        } else {
+            match interval_text.parse::<u64>() {
+                Ok(value) if value >= MIN_INTERVAL_SECS => value,
+                _ => return Err(self.t(Text::IntervalInvalid).to_string()),
+            }
+        };
+        if !cron_text.is_empty()
+            && let Err(err) = CronSchedule::parse(&cron_text)
+        {
+            return Err(self.tr(
+                Text::CronInvalid,
+                &[("expr", &cron_text), ("err", &format!("{err:#}"))],
+            ));
         }
         let rules: Vec<RuleSpec> = match self.rules_editor.read(cx).collect(cx) {
             Ok(rules) => rules,
@@ -407,11 +465,15 @@ impl AppView {
             target.security_group_id = group;
             target.region = region;
             target.rules = rules;
+            target.interval_secs = interval_secs;
+            target.schedule_cron = cron_text;
         } else {
             let mut target = Target::new(account_id, name);
             target.security_group_id = group;
             target.region = region;
             target.rules = rules;
+            target.interval_secs = interval_secs;
+            target.schedule_cron = cron_text;
             self.config.targets.push(target);
         }
 

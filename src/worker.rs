@@ -1,8 +1,10 @@
 //! Background worker: periodic public-IP detection and security-group sync.
 
+use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 use anyhow::{Context, Result};
+use chrono::Local;
 use reqwest::Client;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::time::Instant;
@@ -12,6 +14,7 @@ use crate::logging::{Level, LogEntry, Logger};
 use crate::model::{AppConfig, Target};
 use crate::planner;
 use crate::providers::{ApiClient, Credentials};
+use crate::schedule::{self, Schedule};
 use crate::{ip, storage};
 
 /// Requests from the UI to the worker.
@@ -74,6 +77,9 @@ pub type EventReceiver = UnboundedReceiver<Event>;
 
 const RETRY_ATTEMPTS: usize = 3;
 const API_SPACING: Duration = Duration::from_millis(450);
+/// Delay before the first automatic run, so the window is up and the user can
+/// see what is happening.
+const FIRST_SYNC_DELAY: Duration = Duration::from_secs(8);
 
 pub fn http_client() -> Client {
     Client::builder()
@@ -101,6 +107,8 @@ struct Worker {
     logger: Logger,
     events: EventSender,
     last_ip: Option<String>,
+    /// When each enabled target is due, keyed by target id.
+    due: HashMap<String, Instant>,
 }
 
 async fn worker_loop(
@@ -114,21 +122,22 @@ async fn worker_loop(
         logger: Logger::new(),
         events,
         last_ip: None,
+        due: HashMap::new(),
     };
 
-    let mut next_sync = Instant::now() + Duration::from_secs(8);
-    let secs = worker.config.sync_interval_secs().to_string();
-    let started = worker.tr(Text::WStarted, &[("secs", &secs)]);
+    worker.reset_schedule(true);
+    let started = worker.startup_message();
     worker.log(Level::Info, started);
 
     'worker: loop {
+        let next_wake = worker.next_wake();
         tokio::select! {
             command = commands.recv() => {
                 match command {
                     None | Some(Command::Shutdown) => break 'worker,
                     Some(Command::SyncNow { manual }) => {
                         worker.sync_now(manual).await;
-                        next_sync = Instant::now() + worker.interval();
+                        worker.reset_schedule(false);
                     }
                     Some(Command::DetectIp) => {
                         worker.detect_only().await;
@@ -137,21 +146,14 @@ async fn worker_loop(
                         worker.test_account(&account_id).await;
                     }
                     Some(Command::ConfigChanged(config)) => {
-                        let interval_changed =
-                            config.sync_interval_secs() != worker.config.sync_interval_secs();
                         worker.config = *config;
-                        if interval_changed {
-                            next_sync = Instant::now() + worker.interval();
-                        }
+                        worker.reset_schedule(false);
                         worker.log(Level::Info, worker.t(Text::WConfigUpdated));
                     }
                 }
             }
-            _ = tokio::time::sleep_until(next_sync) => {
-                if worker.has_work() {
-                    worker.sync_now(false).await;
-                }
-                next_sync = Instant::now() + worker.interval();
+            _ = sleep_until_opt(next_wake), if next_wake.is_some() => {
+                worker.run_due().await;
             }
         }
     }
@@ -159,9 +161,83 @@ async fn worker_loop(
     worker.log(Level::Info, worker.t(Text::WStopped));
 }
 
+async fn sleep_until_opt(at: Option<Instant>) {
+    match at {
+        Some(at) => tokio::time::sleep_until(at).await,
+        // Nothing is scheduled; park forever and let a command wake the loop.
+        None => std::future::pending::<()>().await,
+    }
+}
+
 impl Worker {
-    fn interval(&self) -> Duration {
-        Duration::from_secs(self.config.sync_interval_secs())
+    /// Run everything whose own interval or cron expression is due.
+    async fn run_due(&mut self) {
+        let now = Instant::now();
+        let due: HashSet<String> = self
+            .due
+            .iter()
+            .filter(|(_, at)| **at <= now)
+            .map(|(id, _)| id.clone())
+            .collect();
+        if due.is_empty() {
+            return;
+        }
+        // Re-arm first: a long sync must not fire the same target twice.
+        self.advance_due(&due);
+        if self.has_work() {
+            self.sync_targets(false, Some(&due)).await;
+        }
+    }
+
+    fn advance_due(&mut self, ids: &HashSet<String>) {
+        let now = Instant::now();
+        let now_wall = Local::now();
+        for id in ids {
+            let delay = self
+                .config
+                .targets
+                .iter()
+                .find(|target| target.id == *id && target.enabled)
+                .map(|target| schedule::for_target(&self.config.settings, target).delay(now_wall));
+            match delay {
+                Some(delay) => {
+                    self.due.insert(id.clone(), now + delay);
+                }
+                None => {
+                    self.due.remove(id);
+                }
+            }
+        }
+    }
+
+    /// Recompute every due time from now. `initial` waits for the UI instead.
+    fn reset_schedule(&mut self, initial: bool) {
+        let now = Instant::now();
+        let now_wall = Local::now();
+        let mut due = HashMap::with_capacity(self.config.targets.len());
+        for target in self.config.targets.iter().filter(|target| target.enabled) {
+            let delay = if initial {
+                FIRST_SYNC_DELAY
+            } else {
+                schedule::for_target(&self.config.settings, target).delay(now_wall)
+            };
+            due.insert(target.id.clone(), now + delay);
+        }
+        self.due = due;
+    }
+
+    fn next_wake(&self) -> Option<Instant> {
+        self.due.values().copied().min()
+    }
+
+    fn startup_message(&self) -> String {
+        match schedule::global(&self.config.settings) {
+            Schedule::Cron(cron) => self.tr(Text::WStartedCron, &[("cron", cron.expression())]),
+            Schedule::Interval(duration) => {
+                let secs = duration.as_secs().to_string();
+                self.tr(Text::WStarted, &[("secs", &secs)])
+            }
+        }
     }
 
     fn has_work(&self) -> bool {
@@ -224,6 +300,12 @@ impl Worker {
     }
 
     async fn sync_now(&mut self, manual: bool) {
+        self.sync_targets(manual, None).await;
+    }
+
+    /// Sync every enabled target, or only the ids in `only` when a scheduled
+    /// run fired for a subset.
+    async fn sync_targets(&mut self, manual: bool, only: Option<&HashSet<String>>) {
         self.emit(Event::SyncStarted { manual });
 
         if self.config.accounts.is_empty() || self.config.targets.is_empty() {
@@ -282,6 +364,7 @@ impl Worker {
             .targets
             .iter()
             .filter(|target| target.enabled)
+            .filter(|target| only.is_none_or(|ids| ids.contains(&target.id)))
             .cloned()
             .collect();
 

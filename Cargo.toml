@@ -1,6 +1,6 @@
 [package]
 name = "auto-update-cloud-firewall"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2024"
 description = "Graphical cloud security-group firewall auto-updater (Aliyun ECS / Tencent Cloud CVM)"
 license = "MIT"

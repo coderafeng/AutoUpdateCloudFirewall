@@ -9,6 +9,48 @@ English · [简体中文](CHANGELOG.zh-CN.md) · [日本語](CHANGELOG.ja.md) ·
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-18
+
+Scheduling moved from a single global countdown to per-target due times, and the
+dead Edit button on pages with several targets is fixed.
+
+### Added
+
+- Cron expressions: besides the fixed interval, the settings page accepts a
+  five-field expression (minute hour day month weekday) — `0 */5 * * *` for
+  every five minutes, `0 3 * * *` for daily at 03:00 — as well as `@hourly`,
+  `@daily`, `@weekly`, `@monthly` and `@yearly`. Leaving it empty keeps the
+  interval.
+- Per-target schedule overrides: a target may carry its own interval in seconds
+  or its own cron expression. An empty field inherits the global setting, and
+  the expression wins when both are filled. The dialog shows an example and the
+  global default that is currently inherited.
+- Target cards show the schedule actually in effect (`every 300s`,
+  `cron 0 3 * * *`), marked as global when it is inherited.
+
+### Changed
+
+- The worker computes a due time per target, so targets can run on different
+  cadences. A scheduled run only touches the targets that are due; "Sync now"
+  still covers every target.
+
+### Fixed
+
+- With more than one security-group target, the Edit button did nothing for
+  every target after the first. Every row reused the same element IDs
+  (`edit-target`, `delete-target`, `target-enabled`, and likewise for accounts),
+  so gpui attached the handlers to the first row only. The IDs now include the
+  target or account id.
+
+### Known limitations
+
+- Cron is interpreted in the local time zone with minute granularity. A bad
+  expression is rejected when saving; editing `config.json` by hand falls back
+  to the global interval.
+- The other 1.0.0 limitations still apply: IPv4 ingress only; Tencent Cloud
+  rewrites a source address by deleting and recreating the rule; widening a rule
+  back to `0.0.0.0/0` still needs the console.
+
 ## [1.0.0] - 2026-11-16
 
 First stable release.
@@ -75,5 +117,6 @@ First stable release.
 - Only the current public address can be written; widening a rule back to
   `0.0.0.0/0` must be done in the cloud console.
 
-[Unreleased]: https://github.com/coderafeng/AutoUpdateCloudFirewall/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/coderafeng/AutoUpdateCloudFirewall/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/coderafeng/AutoUpdateCloudFirewall/releases/tag/v1.1.0
 [1.0.0]: https://github.com/coderafeng/AutoUpdateCloudFirewall/releases/tag/v1.0.0

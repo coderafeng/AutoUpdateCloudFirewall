@@ -28,6 +28,7 @@ use crate::i18n::{self, Text};
 use crate::logging::{Level, LogEntry};
 use crate::model::{AppConfig, Language, MIN_INTERVAL_SECS, ProviderKind, describe_port_rules};
 use crate::platform::{self, autostart};
+use crate::schedule::{self, CronSchedule, Schedule};
 use crate::storage;
 use crate::tray::Tray;
 use crate::worker::{Command, Event, EventReceiver, TargetPhase};
@@ -135,11 +136,14 @@ pub struct AppView {
     target_name: Entity<InputState>,
     target_group: Entity<InputState>,
     target_region: Entity<InputState>,
+    target_interval: Entity<InputState>,
+    target_cron: Entity<InputState>,
     rules_editor: Entity<rules_editor::RulesEditor>,
     pub target_account: Option<String>,
     pub editing_target: Option<String>,
 
     settings_interval: Entity<InputState>,
+    settings_cron: Entity<InputState>,
     settings_services: Entity<InputState>,
     settings_prefix: Entity<InputState>,
 }
@@ -172,9 +176,17 @@ impl AppView {
         let rules_editor =
             cx.new(|cx| rules_editor::RulesEditor::with_defaults(language, window, cx));
 
+        let target_interval = cx.new(|cx| InputState::new(window, cx).placeholder("300"));
+        let target_cron = cx.new(|cx| InputState::new(window, cx).placeholder("0 */10 * * *"));
+
         let settings_interval = cx.new(|cx| {
             InputState::new(window, cx)
                 .default_value(config.settings.check_interval_secs.to_string())
+        });
+        let settings_cron = cx.new(|cx| {
+            InputState::new(window, cx)
+                .placeholder("0 */5 * * *")
+                .default_value(config.settings.schedule_cron.clone())
         });
         let settings_services = cx.new(|cx| {
             InputState::new(window, cx).default_value(config.settings.ip_services.join(", "))
@@ -240,10 +252,13 @@ impl AppView {
             target_name,
             target_group,
             target_region,
+            target_interval,
+            target_cron,
             rules_editor,
             target_account: None,
             editing_target: None,
             settings_interval,
+            settings_cron,
             settings_services,
             settings_prefix,
         };
@@ -984,7 +999,7 @@ impl AppView {
                             h_flex()
                                 .gap_2()
                                 .child(
-                                    Switch::new("account-enabled")
+                                    Switch::new(format!("account-enabled-{id}"))
                                         .checked(account.enabled)
                                         .tooltip(self.t(Text::EnableAccountTooltip))
                                         .on_change(cx.listener({
@@ -1004,7 +1019,7 @@ impl AppView {
                                         })),
                                 )
                                 .child(
-                                    Button::new("test-account")
+                                    Button::new(format!("test-account-{id}"))
                                         .outline()
                                         .small()
                                         .icon(IconName::Play)
@@ -1024,7 +1039,7 @@ impl AppView {
                                         })),
                                 )
                                 .child(
-                                    Button::new("edit-account")
+                                    Button::new(format!("edit-account-{id}"))
                                         .outline()
                                         .small()
                                         .icon(IconName::Settings2)
@@ -1042,7 +1057,7 @@ impl AppView {
                                         })),
                                 )
                                 .child(
-                                    Button::new("delete-account")
+                                    Button::new(format!("delete-account-{id}"))
                                         .ghost()
                                         .small()
                                         .icon(IconName::Delete)
@@ -1120,7 +1135,7 @@ impl AppView {
                             ),
                     )
                     .child(
-                        Button::new("add-target")
+                        Button::new(format!("add-target-{account_id}"))
                             .outline()
                             .small()
                             .icon(IconName::Plus)
@@ -1158,6 +1173,11 @@ impl AppView {
                             &target.region
                         },
                     )],
+                );
+                let schedule_text = schedule_label(
+                    self.language,
+                    &schedule::for_target(&self.config.settings, &target),
+                    schedule::inherited(&target),
                 );
                 let (phase, message) = self
                     .target_status
@@ -1209,7 +1229,8 @@ impl AppView {
                                                 .text_color(cx.theme().muted_foreground)
                                                 .child(target.security_group_id.clone())
                                                 .child(region_text)
-                                                .child(rules_text),
+                                                .child(rules_text)
+                                                .child(schedule_text),
                                         )
                                         .when(!message.is_empty(), |this| {
                                             this.child(
@@ -1224,7 +1245,7 @@ impl AppView {
                                     h_flex()
                                         .gap_2()
                                         .child(
-                                            Switch::new("target-enabled")
+                                            Switch::new(format!("target-enabled-{target_id}"))
                                                 .checked(target.enabled)
                                                 .on_change(cx.listener({
                                                     let id = target_id.clone();
@@ -1243,7 +1264,7 @@ impl AppView {
                                                 })),
                                         )
                                         .child(
-                                            Button::new("edit-target")
+                                            Button::new(format!("edit-target-{target_id}"))
                                                 .outline()
                                                 .small()
                                                 .icon(IconName::Settings2)
@@ -1262,7 +1283,7 @@ impl AppView {
                                                 })),
                                         )
                                         .child(
-                                            Button::new("delete-target")
+                                            Button::new(format!("delete-target-{target_id}"))
                                                 .ghost()
                                                 .small()
                                                 .icon(IconName::Delete)
@@ -1394,6 +1415,12 @@ impl AppView {
                 self.t(Text::CheckInterval),
                 Input::new(&self.settings_interval),
                 Some(self.t(Text::CheckIntervalHint)),
+                cx,
+            ))
+            .child(field(
+                self.t(Text::CronSchedule),
+                Input::new(&self.settings_cron),
+                Some(self.t(Text::CronScheduleHint)),
                 cx,
             ))
             .child(field(
@@ -1582,13 +1609,16 @@ impl AppView {
                             .label(self.t(Text::Revert))
                             .on_click(cx.listener(|this, _, window, cx| {
                                 let interval = this.settings_interval.clone();
+                                let cron = this.settings_cron.clone();
                                 let services = this.settings_services.clone();
                                 let prefix = this.settings_prefix.clone();
                                 let interval_value =
                                     this.config.settings.check_interval_secs.to_string();
+                                let cron_value = this.config.settings.schedule_cron.clone();
                                 let services_value = this.config.settings.ip_services.join(", ");
                                 let prefix_value = this.config.settings.rule_prefix.clone();
                                 this.set_input(&interval, interval_value, window, cx);
+                                this.set_input(&cron, cron_value, window, cx);
                                 this.set_input(&services, services_value, window, cx);
                                 this.set_input(&prefix, prefix_value, window, cx);
                             })),
@@ -1615,6 +1645,7 @@ impl AppView {
 
     fn save_settings(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let interval_text = self.settings_interval.read(cx).value().to_string();
+        let cron_text = self.settings_cron.read(cx).value().trim().to_string();
         let services_text = self.settings_services.read(cx).value().to_string();
         let prefix_text = self.settings_prefix.read(cx).value().to_string();
 
@@ -1627,6 +1658,18 @@ impl AppView {
                 return;
             }
         };
+
+        if !cron_text.is_empty()
+            && let Err(err) = CronSchedule::parse(&cron_text)
+        {
+            let message = self.tr(
+                Text::CronInvalid,
+                &[("expr", &cron_text), ("err", &format!("{err:#}"))],
+            );
+            window.push_notification(message.clone(), cx);
+            self.set_notice(NoticeLevel::Error, message);
+            return;
+        }
 
         let services: Vec<String> = services_text
             .split([',', '\n'])
@@ -1645,6 +1688,7 @@ impl AppView {
         }
 
         self.config.settings.check_interval_secs = interval;
+        self.config.settings.schedule_cron = cron_text;
         self.config.settings.ip_services = services;
         self.config.settings.rule_prefix = prefix;
         self.persist();
@@ -1746,6 +1790,24 @@ fn link_row(
                 .label(action.to_string())
                 .on_click(move |_, _, cx| cx.open_url(url)),
         )
+}
+
+/// Human-readable schedule, e.g. "every 300s" or "cron 0 3 * * *".
+fn schedule_label(language: Language, schedule: &Schedule, inherited: bool) -> String {
+    let base = match schedule {
+        Schedule::Cron(cron) => {
+            i18n::tr(language, Text::ScheduleCron, &[("cron", cron.expression())])
+        }
+        Schedule::Interval(duration) => {
+            let secs = duration.as_secs().to_string();
+            i18n::tr(language, Text::ScheduleInterval, &[("secs", &secs)])
+        }
+    };
+    if inherited {
+        i18n::tr(language, Text::ScheduleInherited, &[("schedule", &base)])
+    } else {
+        base
+    }
 }
 
 fn pill(text: impl Into<SharedString>, color: Hsla) -> Div {
