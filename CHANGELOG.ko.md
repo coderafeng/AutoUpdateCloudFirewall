@@ -9,6 +9,23 @@
 
 ## [미배포]
 
+## [1.1.1] - 2026-11-18
+
+다른 Windows PC에서 보고된 시작 관련 문제 두 가지를 수정했습니다.
+
+### 수정
+
+- **더블 클릭을 반복하면 프로세스가 여러 개 실행되던 문제.** 실행 파일을 다시 더블 클릭하면 두 번째
+  프로세스가 시작되어 트레이 아이콘과 백그라운드 작업이 늘어났고, 새 창은 대부분 첫 번째 창 뒤에
+  가려졌습니다. 이제 이름 있는 뮤텍스로 단일 인스턴스만 실행되며, 중복 실행은 기존 창을 앞으로
+  가져온 뒤 즉시 종료합니다.
+- **"최소화 상태로 시작"이 켜져 있으면 직접 실행해도 알림 영역으로 숨던 문제.** 실행되지 않은 것처럼
+  보이는 원인이었습니다. 이 설정은 이제 자동 시작에만 적용되며(Run 명령에 `--minimized`가 붙습니다),
+  직접 실행하면 항상 창이 표시됩니다. 시작할 때 Run 값을 다시 기록하므로 업그레이드로 경로가 바뀌어도
+  등록이 유지됩니다.
+- **직접 실행했는데 창이 보이지 않던 문제.** 시작 후 몇 초 동안 창 상태를 확인하고, 플랫폼이 창을
+  숨긴 채 만들었다면(느린 데스크톱이나 RDP 세션에서 발생) 직접 표시합니다.
+
 ## [1.1.0] - 2026-11-18
 
 스케줄을 "전역 카운트다운 하나"에서 "대상별 실행 시각"으로 바꾸고, 대상이 여러 개일 때
@@ -103,6 +120,7 @@
 - 기록할 수 있는 주소는 현재 공인 주소뿐입니다. `0.0.0.0/0`으로 되돌리려면 콘솔에서
   직접 수정해야 합니다.
 
-[미배포]: https://github.com/coderafeng/AutoUpdateCloudFirewall/compare/v1.1.0...HEAD
+[미배포]: https://github.com/coderafeng/AutoUpdateCloudFirewall/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/coderafeng/AutoUpdateCloudFirewall/releases/tag/v1.1.1
 [1.1.0]: https://github.com/coderafeng/AutoUpdateCloudFirewall/releases/tag/v1.1.0
 [1.0.0]: https://github.com/coderafeng/AutoUpdateCloudFirewall/releases/tag/v1.0.0

@@ -9,6 +9,21 @@
 
 ## [未发布]
 
+## [1.1.1] - 2026-11-18
+
+修掉另一台 Windows 机器上报的两个启动问题。
+
+### 修复
+
+- **重复双击会启动多个进程。** 之前再次双击可执行文件会再起一个进程，多出一个托盘图标和一个后台任务，
+  而且新窗口常常被第一个窗口挡住。现在用命名互斥量保证只运行一份：重复启动会把已在运行的窗口
+  提到前台，然后立刻退出。
+- **双击启动却直接缩进通知区域。** 开启「最小化启动」时，手动双击也会启动到托盘，看上去像没运行。
+  现在该选项只作用于开机自启（注册表命令里带 `--minimized`），手动启动一律显示主窗口。
+  程序启动时还会重写开机自启项，升级换了路径也不会失效。
+- **手动启动时窗口没显出来。** 启动后会复查几秒窗口状态，如果平台把它创建成了隐藏窗口
+  （较慢的桌面环境、RDP 远程会话里出现过），就主动显示出来。
+
 ## [1.1.0] - 2026-11-18
 
 调度从「一个全局倒计时」变为「每个目标各自到期」，并修掉了多目标的编辑按钮失效问题。
@@ -94,6 +109,7 @@
   备注与优先级保留。
 - 只能写入当前公网地址，把规则放宽回 `0.0.0.0/0` 需要到控制台手工修改。
 
-[未发布]: https://github.com/coderafeng/AutoUpdateCloudFirewall/compare/v1.1.0...HEAD
+[未发布]: https://github.com/coderafeng/AutoUpdateCloudFirewall/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/coderafeng/AutoUpdateCloudFirewall/releases/tag/v1.1.1
 [1.1.0]: https://github.com/coderafeng/AutoUpdateCloudFirewall/releases/tag/v1.1.0
 [1.0.0]: https://github.com/coderafeng/AutoUpdateCloudFirewall/releases/tag/v1.0.0

@@ -23,11 +23,24 @@ use crate::platform::APP_TITLE;
 use crate::ui::{AppView, Boot};
 
 fn main() {
+    // Only one copy may run: a second double click surfaces the running window
+    // instead of starting another process (and another hidden tray icon).
+    let Some(_instance) = platform::single_instance::acquire() else {
+        platform::activate_existing_instance();
+        return;
+    };
+
     let mut config = storage::load_config();
     let _ = storage::ensure_dirs();
 
     // Reflect the real registry state instead of trusting stale config.
-    config.settings.autostart = platform::autostart::is_enabled();
+    let autostart_enabled = platform::autostart::is_enabled();
+    if autostart_enabled {
+        // Re-register on every start: keeps the executable path current after an
+        // upgrade and syncs the `--minimized` switch with the setting.
+        let _ = platform::autostart::set_enabled(true, config.settings.start_minimized);
+    }
+    config.settings.autostart = autostart_enabled;
 
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(2)
@@ -52,8 +65,22 @@ fn main() {
         }
     };
 
-    let start_hidden = config.settings.start_minimized;
+    let start_hidden = config.settings.start_minimized && platform::launched_by_autostart();
     let window_icon = icon::window_icon().ok();
+
+    // A manual launch must always end up with a visible window. gpui asks the
+    // platform to show it, but some machines (RDP sessions, delayed desktop
+    // compositing) leave it created-but-hidden, which looks like "nothing ran".
+    if !start_hidden {
+        std::thread::spawn(|| {
+            for _ in 0..100 {
+                std::thread::sleep(std::time::Duration::from_millis(100));
+                if platform::ensure_main_window_visible() {
+                    return;
+                }
+            }
+        });
+    }
 
     let app = gpui_kit::application().with_assets(icon::AppAssets);
     app.run(move |cx| {

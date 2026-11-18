@@ -1473,7 +1473,7 @@ impl AppView {
                 Switch::new("setting-autostart")
                     .checked(autostart_on)
                     .on_change(cx.listener(|this, value, _, cx| {
-                        match autostart::set_enabled(*value) {
+                        match autostart::set_enabled(*value, this.config.settings.start_minimized) {
                             Ok(()) => {
                                 this.config.settings.autostart = *value;
                                 this.persist();
@@ -1504,6 +1504,11 @@ impl AppView {
                     .on_change(cx.listener(|this, value, _, cx| {
                         this.config.settings.start_minimized = *value;
                         this.persist();
+                        // The registry command carries the switch, so keep it in
+                        // sync while auto-start is registered.
+                        if this.config.settings.autostart {
+                            let _ = autostart::set_enabled(true, *value);
+                        }
                         cx.notify();
                     })),
                 cx,

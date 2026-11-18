@@ -9,6 +9,25 @@ English · [简体中文](CHANGELOG.zh-CN.md) · [日本語](CHANGELOG.ja.md) ·
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-18
+
+Two launch problems reported from a second Windows machine, both fixed.
+
+### Fixed
+
+- Double-clicking the executable a second time started another process with its
+  own tray icon and background worker, and the new window usually stayed behind
+  the first one. A named mutex now keeps the app single-instance: an extra
+  launch brings the running window to the front and exits.
+- With "start minimized" enabled, even a manual double-click opened straight
+  into the notification area, so it looked like the program had not started.
+  That option now applies to the auto-start entry only — the Run command carries
+  `--minimized` — so launching the app by hand always shows the window. The
+  registry command is also re-written on startup, which keeps the path correct
+  after upgrading.
+- A manual launch now re-checks the window for a few seconds and shows it if the
+  platform left it created-but-hidden (seen on slower desktops and RDP sessions).
+
 ## [1.1.0] - 2026-11-18
 
 Scheduling moved from a single global countdown to per-target due times, and the
@@ -117,6 +136,7 @@ First stable release.
 - Only the current public address can be written; widening a rule back to
   `0.0.0.0/0` must be done in the cloud console.
 
-[Unreleased]: https://github.com/coderafeng/AutoUpdateCloudFirewall/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/coderafeng/AutoUpdateCloudFirewall/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/coderafeng/AutoUpdateCloudFirewall/releases/tag/v1.1.1
 [1.1.0]: https://github.com/coderafeng/AutoUpdateCloudFirewall/releases/tag/v1.1.0
 [1.0.0]: https://github.com/coderafeng/AutoUpdateCloudFirewall/releases/tag/v1.0.0

@@ -707,16 +707,16 @@ texts! {
         ko: "이 실행 파일을 현재 사용자의 Run 레지스트리 키에 등록합니다."
     },
     StartMinimized => {
-        en: "Start minimized",
-        zh: "最小化启动",
-        ja: "最小化して起動",
-        ko: "최소화 상태로 시작"
+        en: "Start in the tray at boot",
+        zh: "开机自启时最小化到托盘",
+        ja: "スタートアップ時は通知領域で起動",
+        ko: "Windows 시작 시 알림 영역으로 실행"
     },
     StartMinimizedHint => {
-        en: "Open straight into the notification area (takes effect on next launch).",
-        zh: "直接启动到通知区域（下次启动生效）。",
-        ja: "通知領域に直接起動します（次回起動時に有効）。",
-        ko: "알림 영역으로 바로 시작합니다(다음 실행부터 적용)."
+        en: "Only applies to the Windows auto-start entry. Starting the app manually always shows the window.",
+        zh: "仅对开机自启生效；手动双击启动始终显示主窗口。",
+        ja: "Windows の自動起動にのみ適用されます。手動で起動した場合は必ずウィンドウが表示されます。",
+        ko: "자동 시작에만 적용됩니다. 직접 실행하면 항상 창이 표시됩니다."
     },
     SectionFiles => {
         en: "Files",
